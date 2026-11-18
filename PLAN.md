@@ -15,20 +15,24 @@ Rule for every test: a failure must come back to the USB console without anyone
 touching the tablet (reset → Download mode → automatic reflash, or watchdog reset
 → BOOT). No boot stages on RECOVERY.
 
-## Next three steps (2026-11-11)
+## Next three steps (2026-11-19)
 
-1. The multi-variant change (merged 2026-11-11): the images build on main
-   compiles it first; then TESTPLAN V1 (the Wi-Fi image unchanged) on the
-   tablet with the dev image it published, and check.yml (LTE DTB, U-Boot
-   with both DTs, the modem sketch, the installer suite) on the next
-   branch or pull request.
-2. Rename the repository to `exynos-linux/samsung-gtactive3`
-   (docs/RELEASES.md, "Moving the repository"), the owner's step 2 there.
+1. The images build again: every `images` run since 2026-11-11 stops
+   before building, because postmarketOS's registry answers 403 to the
+   runner's token for docker-postmarketos:edge (run 44203340654). Take the
+   builder image from a registry we control (or build it from
+   alpine:edge), then TESTPLAN V1 and V4 (legacy image names) on the
+   SM-T570 with the dev image it publishes.
+2. Responsiveness (branch `accelerate-factcheck`, samsung-gtactive3-common
+   r51): TESTPLAN D12 on the SM-T570 with a local image of the branch
+   (touch boost, irqbalance, then the D12.3 baseline: boot, storage,
+   frames), merge what passes; docs/STATUS.md "Responsiveness" says what
+   is behind each item.
 3. The open SM-T570 work of 2026-10-25, unchanged: r25 boots counted to 5
    and `scripts/pmos-verify`; r26 (autofocus, V4L2 controls,
-   drv/wifi-recover, the mic slider, now `samsung-gtactive3-common` r50);
-   the boot hang, C2 and deep sleep. The LTE first boot (TESTPLAN V2/V3)
-   when a T575 owner joins (docs/VARIANTS.md).
+   drv/wifi-recover, the mic slider, now `samsung-gtactive3-common`); the
+   boot hang, C2 and deep sleep. The LTE first boot (TESTPLAN V2/V3) when
+   a T575 owner joins (docs/VARIANTS.md).
 
 The layer lists below are the original bring-up plan; docs/STATUS.md says
 what is verified today.
@@ -68,7 +72,9 @@ what is verified today.
 ## Layer 4: power and CPU
 - [ ] S2MPS18 (SPEEDY), MAX77705 charger + fuel gauge, TMU thermal — `power`
 - [x] Big cores, clock driver, then cpufreq — `cpu` (all eight cores, owner
-      2026-10-25); left: big-core C2, M3 above 1794 MHz
+      2026-10-25); left: big-core C2. M3 above 1794 MHz is not planned:
+      stock caps the M3 there too (docs/BATTERY.md), so it would be an
+      overclock
 - [ ] CPU idle C2 (off by default since r25) — `cpu`
 
 ## Layer 5: acceleration and connectivity
@@ -89,7 +95,8 @@ what is verified today.
   (patches/linux/0154, not enabled)
 - [x] Merged into main (2026-11-11, owner)
 - [ ] Images build green; TESTPLAN V1 on the SM-T570 with that dev image
-- [ ] Repository rename (docs/RELEASES.md)
+- [x] Repository rename (docs/RELEASES.md): exynos-linux/samsung-gtactive3
+  (2026-11-11); the org site's record waits for the owner
 - [ ] With a T575: stock DT/PIT facts, V2 bring-up Linux, V3 chained boot,
   a local Duranium image, then `images = true`
 - [ ] Speaker amp by board revision (TAS2562 on EUR rev >= 5, both variants)
@@ -107,3 +114,20 @@ what is verified today.
 - [x] Cameras: rear S5K3L6 and front GC5035 on stock libcamera, fixed focus
       (owner 2026-10-24 and 2026-10-25); autofocus is step 2
 - [ ] Fingerprint (TrustZone-owned), GPS: research first
+
+## Layer 7: responsiveness (2026-11-19, docs/STATUS.md "Responsiveness")
+
+- [ ] Touch boost: CPU floors on touch and resting floors at stock's lowest
+      levels, samsung-gtactive3-common r51 (built, offline test 7/7) —
+      TESTPLAN D12.1
+- [ ] Device interrupts off CPU0: irqbalance on CPU0-3, r51 — D12.2
+- [ ] Baseline on the tablet: boot time, swiotlb use under storage load,
+      GPU load while animating, loglevel=7 console cost — D12.3, D12.4;
+      the items below are ranked by what it shows
+- [ ] AFBC: the Mesa fix for Bifrost v6 upstream, then drop `noafbc`
+- [ ] Storage: the SysMMU in front of UFS, so I/O above 4 GiB is no longer
+      bounced through swiotlb (only if D12.3 shows a real cost)
+- [ ] App-launch boost like stock's Hyper HAL (0.7 s): needs a launch
+      signal from the shell (none today)
+- [ ] Rotation: the phoc MR upstream (Auto-rotate row)
+- [ ] MIF devfreq: battery, not speed (docs/BATTERY.md item 8)

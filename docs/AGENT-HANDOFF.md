@@ -5,6 +5,41 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-19 07:05 AEDT (session "accelerate-factcheck"): responsiveness
+
+- The owner found the tablet slow and asked for the facts and a fix, with
+  no tablet attached: everything here is built and tested offline only,
+  on local branch `accelerate-factcheck` (not pushed, not merged), for
+  the owner to test at home (TESTPLAN D12).
+- Facts, in docs/STATUS.md "Responsiveness": our CPU ranges already reach
+  stock's maximum (stock caps the M3 at 1794 MHz too, so the levels above
+  it are an overclock, now off PLAN.md); the memory bus sits at 1794 MHz
+  (battery, not speed); what stock has and we lacked is the touch and
+  launch boost and stock's higher resting floors; every device interrupt
+  is on CPU0; AFBC is off; UFS bounces I/O above 4 GiB through swiotlb
+  (about half the RAM); the display path makes no CPU copies. Nothing was
+  timed on the device; D12.3 is the baseline.
+- Built: samsung-gtactive3-common r51 = `gtactive3wifi-input-boost` (C,
+  static; stock input_booster values, resting floors 455/650 MHz, touch
+  832/1066 MHz until 500 ms after the last touch or pen event; writes only
+  scaling_min_freq, restores on stop) + `gtactive3wifi-irqbalance.service`
+  (Alpine irqbalance, CPU4-7 banned). Verified here: tests/input-boost
+  7/7 on x86 glibc and in an aarch64 Alpine container (static musl, the
+  package's own flags); the APKBUILD's build() and package() run in that
+  container (binary, units, wants links); checksums match; shellcheck.
+  Not run: abuild with the postmarketOS repositories, any image.
+- No kernel change: the drivers are C and not the bottleneck; the
+  storage fix (SysMMU for UFS) and AFBC (Mesa) wait for D12.3's numbers.
+- CI: every `images` run since 2026-11-11 stops at postmarketOS's
+  registry (403 on the token for docker-postmarketos:edge, runs
+  43120752012 ... 44203340654). PLAN.md step 1.
+- In flight: branch `accelerate-factcheck` only. No builds running.
+- Next three steps: as PLAN.md "Next three steps (2026-11-19)".
+- Waits for the owner: D12 on the tablet with a local image of the branch
+  (👆 touch drags and their judgement of the feel); whether to push the
+  branch (check.yml then compiles it); the CI registry fix; earlier items
+  below (org site record, V1, D11 unplug, phoc MR).
+
 ## State 2026-11-11 (session "Multi-variant port"): image names
 
 - Images have their own names now (`image_id`): `samsung-gtactive3-wifi_*`
