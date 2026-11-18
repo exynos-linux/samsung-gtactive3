@@ -1,7 +1,8 @@
 # Compile checks for branches and pull requests: nothing is published.
 #
 #  - offline: config.toml (scripts/config check + tests/config), the
-#    firmware tools' tests, shellcheck of the plumbing
+#    firmware tools' tests, the touch boost daemon's test, shellcheck of
+#    the plumbing
 #  - installer: tests/installer in a Fedora container (its tools)
 #  - kernel: torvalds/linux at the kernel aport's _base + its patch, with the
 #    aport's config: every variant's DTB, the Wi-Fi DTB compared with the
@@ -29,6 +30,7 @@ jobs:
       - run: scripts/config check
       - run: python3 -I tests/config/test_config.py
       - run: bash tests/firmware/run.sh
+      - run: bash tests/input-boost/run.sh
       - name: shellcheck (what the variant work touched)
         run: |
           shellcheck -x ci/state ci/channels ci/check-image ci/bootchain/build ci/bootchain/publish \

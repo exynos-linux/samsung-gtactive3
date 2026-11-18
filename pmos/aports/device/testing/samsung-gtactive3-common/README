@@ -82,6 +82,14 @@ Battery and responsiveness (both UIs):
 - systemd-oomd prefers apps over GNOME Shell, Phosh and gnome-session
   (ManagedOOMPreference=avoid); zram swap and its sysctls come from
   postmarketos-zram (zstd, 150 % of RAM, swappiness 180).
+- gtactive3wifi-input-boost.service: Samsung's touch boost
+  (input_booster): while the screen or the S Pen is touched and for 500 ms
+  after, the CPU floors are A55 832 MHz and M3 1066 MHz; between touches
+  455 MHz and 650 MHz, stock's lowest levels (docs/BATTERY.md). Only
+  scaling_min_freq is written, so schedutil still picks the frequency and
+  the power profiles' caps win; stopping the service restores the floors.
+- gtactive3wifi-irqbalance.service: irqbalance on the A55 cores (CPU0-3);
+  without it every device interrupt is handled on CPU0.
 - Power profiles (tuned-ppd): "power-saver" caps the A55 at 1456 MHz
   (Samsung's energy table: 25-34 % more energy per cycle above it),
   "performance" keeps the zram-friendly memory settings

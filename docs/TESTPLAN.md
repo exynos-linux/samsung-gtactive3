@@ -274,6 +274,62 @@ done. r26 adds: Settings → Sound input slider moves "IN3 Boost Volume"
 (-12 .. +21 dB) and the recorded level 👆; with headphones in, the Speaker
 stays listed and selectable 👆.
 
+### D12. Responsiveness (branch accelerate-factcheck, samsung-gtactive3-common r51, RESPONSIVENESS)
+
+Needs an image of the branch: CI cannot build one until the registry
+problem is fixed (PLAN.md step 1), so a local image (`gtactive3-build-loop`)
+delivered with `scripts/duranium-update`. Nothing here touches the kernel,
+the boot chain or the disk layout: if the image does not boot, boot
+counting returns to the other slot; if a service misbehaves,
+`systemctl disable --now gtactive3wifi-input-boost` (it puts the old floors
+back on stop) or `... gtactive3wifi-irqbalance` undoes it at runtime.
+
+**D12.1 Touch boost.** No hands: `systemctl is-active
+gtactive3wifi-input-boost` = active; its journal has "watching
+/dev/input/eventN" for the Himax touchscreen and, once the pen is near,
+the Wacom digitizer; `cat
+/sys/devices/system/cpu/cpufreq/policy{0,4}/scaling_min_freq` = 455000 and
+650000 at rest. 👆 drag a finger around the home screen for 5 s while
+the console polls both files every 50 ms (`while :; do cat ...; sleep
+0.05; done`): 832000 and 1066000 while touching, back to 455000 / 650000
+about 0.5 s after the finger lifts; `scaling_cur_freq` of policy0 never
+below 832000 during the drag. With "power-saver" chosen in quick settings,
+the same (832 MHz is below its 1456 MHz cap). 👆 then the owner's
+judgement: open and close the app grid and three apps, compare with the
+service stopped. FAIL hints: no "watching" line = the touchscreen lacks
+INPUT_PROP_DIRECT and BTN_TOOL_PEN (`evtest` capabilities); floors
+unchanged while touching = cpufreq-dt not loaded when the service started
+and no touch since (`lsmod | grep cpufreq_dt`), or a power profile
+lowered `scaling_max_freq`.
+
+**D12.2 Interrupts off CPU0.** No hands: `systemctl is-active
+gtactive3wifi-irqbalance` = active; `cat /proc/interrupts` twice, 60 s
+apart, with a video or a scroll running: the per-device counts (himax,
+panfrost, exynos9810-dpu, ufshcd, the PCIe/brcmfmac MSI) grow on CPU1-3 as
+well as CPU0, and not on CPU4-7 (per-CPU timers and IPIs excepted). Then
+D2's power draw and C's regression list once. FAIL hints: all still on
+CPU0 = the journal of the service (affinity writes refused for that
+interrupt controller); a hang or lost touch after an interrupt moved =
+note which IRQ moved (`/proc/irq/N/effective_affinity_list`), disable the
+service. Repeat once C2 is back on (an interrupt aimed at an idle A55
+relies on the C2 wake path).
+
+**D12.3 Baseline (before and after r51, the same image otherwise).** No
+hands: `systemd-analyze`, `systemd-analyze critical-chain`,
+`systemd-analyze blame | head -20` (time spent at the passphrase prompt
+counts in the initrd: note it); storage: `echo 3 >
+/proc/sys/vm/drop_caches; dd if=<a file of 500 MB+ on /usr> of=/dev/null
+bs=1M` (MB/s) with `cat /sys/kernel/debug/swiotlb/io_tlb_used` sampled
+during the copy and `dmesg | grep -i swiotlb` after; GPU:
+`cat /sys/class/devfreq/*/device/gpu_busy_percent` and `cur_freq` while
+the app grid scrolls. Results to `logs/test-runs/<date>-responsiveness/`
+and the STATUS.md "Responsiveness" table.
+
+**D12.4 Boot console cost.** In the systemd-boot menu press `e`, change
+`loglevel=7` to `loglevel=4` for that one boot (the next boot is back to
+normal), compare `systemd-analyze` kernel time with D12.3. Only if it is
+seconds does the image's command line change.
+
 ## E. Test helpers
 
 - `GTA3_PASSWORD=<ClaudeKeys placeholder> scripts/tab-unlock` answers the
