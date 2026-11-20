@@ -35,6 +35,7 @@ touching the tablet (reset → Download mode → automatic reflash, or watchdog 
    systemd, its base, initrd and extensions. `APK_PIN=` turns it off once
    a fixed apk or systemd is out (mkosi.tools.conf scripts are ignored by
    mkosi; a local tools package directory needs openssl in the container).
+   Draft upstream report for the owner: docs/upstream/apk-3.0.10-systemd-binmerge.md.
    Then TESTPLAN V1, V4 and D12/D13 with the dev image, and D14.7
    (battery care on after the first boot: kernel r27 +
    samsung-gtactive3-common r54, merged 2026-11-20).
