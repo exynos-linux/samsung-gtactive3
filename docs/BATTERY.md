@@ -173,7 +173,12 @@ battery health"), upower and Noru all drive it:
   (tmpfiles) creates `/var/lib/upower/charging-threshold-status` = `1` if
   it is missing: battery care is **on** by default, and the owner's choice in
   Settings is kept across boots and updates. upower applies it whenever the
-  battery appears.
+  battery appears. The file lives in /var, which an A/B update keeps, so a
+  choice made on an older image wins over the default: on 26112001 the first
+  boot read 100/100 because a D14.5 test on 26102701 had switched care off
+  (state `0`, 2026-11-20 14:14). Switching it on wrote 80-85 and paused
+  charging at 100 %; with sysfs forced to 100/100, a upower restart put
+  80-85 back (D14.7, 2026-11-20 16:45).
 - Stock source: Samsung's 4.9 kernel for the S9 (`drivers/battery_v2`) has
   no full-capacity limit, so the 85 % comes from One UI's setting, not from
   driver code we have read. Our hysteresis (80-85) is our own choice.

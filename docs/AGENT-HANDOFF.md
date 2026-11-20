@@ -5,6 +5,21 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-20 16:50 AEDT (session "battery-care"): D14.7 in image 26112001
+
+- D14.7 partly done on 26112001 (r27 + r54), no reloads, no reboot, under
+  the device lock (LOG.md 16:45). The first boot's 100/100 was not a bug:
+  upower's state file still held `0` from this session's D14.5 disable
+  test at 14:14 (/var survives A/B updates; the tmpfiles default only
+  creates a missing file). Enable → 80-85 and "charging paused"; sysfs
+  forced to 100/100 + upower restart → 80-85 again; disable → 0-100.
+  **Battery care is ON** on the tablet now.
+- Left for D14.7: the pause at 85 % while charging (the battery is at
+  100 %; needs it below 80 first, then the PC's USB or a wall charger) and
+  a real reboot. Noru's tile is in shell/noru 86932638 (next noru release).
+- The tablet now runs the stock r27 charger module from the image (the /tmp
+  one went with the update). Next three steps: unchanged (PLAN.md).
+
 ## State 2026-11-20 14:30 AEDT (session "battery-care"): charge limit and power saver
 
 - Kernel r27 (src/linux `drv/battcare`, 29dc0ef8b on 12b04826f; `gtactive3`
