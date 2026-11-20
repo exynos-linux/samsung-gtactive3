@@ -5,7 +5,7 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
-## State 2026-11-20 17:00 AEDT (session "tablet-lab"): 26112001 checked, chooser facts, osk sysext blocked
+## State 2026-11-20 16:50 AEDT (session "tablet-lab"): 26112001 checked, chooser facts, osk sysext blocked
 
 - Image 26112001 (r53/r52/r54, kernel r27) booted and blessed on the SM-T570.
   V4 ✔ once the frozen /etc/sysupdate.d transfers were moved out (backup in
