@@ -428,6 +428,33 @@ and the STATUS.md "Responsiveness" table.
 normal), compare `systemd-analyze` kernel time with D12.3. Only if it is
 seconds does the image's command line change.
 
+### D13. USB debug security and the USB popup (duranium-usb-debug r7, common r53, USB_DEBUG)
+
+Results 2026-11-20 (tablet-lab, image 26102701 with the r7 scripts and
+units copied to /run, nothing installed):
+
+| id | how | result |
+|---|---|---|
+| D13.1 | `scripts/tab-ssh --pair` with a new key, nobody answers | ✔ prompt "Allow USB debugging?" with the full fingerprint first (screenshot over D-Bus); "denied" after 60 s and the banner closed (r7 closes it; a critical notification never expires) |
+| D13.2 | the same, 👆 Allow | ✔ "paired", key in /etc/duranium-usb-debug/authorized_keys; a one-shot sshd with r7's sshd_config logs it in; `sshd -T`: PermitRootLogin prohibit-password, PasswordAuthentication no |
+| D13.3 | indicator: `usb-debug-notify` in the session, 👆 look at the notification list | ✔ "USB debugging is on" with Turn off (owner); with Do Not Disturb only in the list |
+| D13.4 | `usb-debug-ctl off`, `on` from a timer 45 s later | ✘ first try: usb-signaller's own NCM gadget kept the name usb0, ours came up as usb1, nothing listened until a reboot; ✔ with rm_gadget: back on usb0, ssh at once |
+| D13.5 | popup: drop-in for usb-moded-notify, reboot | ✔ `Result=exec-condition`, no chooser after the reboot |
+| D13.6 | installer over ssh: `GTA3_CONSOLE_PORT=2399 console.py probe/cmd/put/hash/get` | ✔ 3 MB upload, matching sha256 |
+
+Still open, with an r7 image: 👆 Turn off from the notification (polkit);
+`duranium-usb-debug on` from a root terminal; boot with the off flag set
+(the initrd's gadget is torn down after switch-root); ports 23/24/2323 closed
+without open mode and open with `duranium.usb_debug=open` typed in the boot
+menu; `scripts/duranium-update` over the USB ssh.
+
+Host side (this PC): the auto-created NetworkManager profile for the
+tablet's NCM link needs DHCP from the tablet (unudhcpd@usb0); without it it
+fails every 45 s and removes the link-local address, so the tablet is
+unreachable and GNOME can say "Connection failed". A profile for the
+tablet's host MAC 02:57:0a:00:00:02 with `ipv6.method link-local`,
+`ipv4.may-fail yes` would avoid it; not set up (needs the owner's OK).
+
 ## E. Test helpers
 
 - `GTA3_PASSWORD=<ClaudeKeys placeholder> scripts/tab-unlock` answers the

@@ -1,65 +1,69 @@
 # Working on the SM-T570 with several sessions at once
 
-One tablet, one laptop, several Claude sessions. These rules keep them from
-breaking each other's work or the user's data. Coordinator: the session
-"PostmarketOS duranium bootloader unlock" (message it before anything in
-section 1).
+One tablet (the owner's daily device), one PC, several Claude sessions.
+These rules keep them from breaking each other's work or the owner's data.
 
-## 1. The tablet (one device, the user's daily system)
+**Coordinator (since 2026-11-20): the session "tablet-lab"**, which owns the
+tablet and this repository. The bring-up era sessions named in older
+handoff entries are gone. Sessions that may ask for tablet time today: the
+Cairn OS sessions (images, noru, osk, ports, battery care) and Godnotic.
+Message tablet-lab before anything in section 1 beyond read-only use.
 
-- **Disruptive actions need the device lock and a heads-up to the
-  coordinator:** reboot, Download mode, flashing, `scripts/duranium-boot`,
-  `scripts/duranium-update`, rmmod/insmod of a loaded driver, register pokes
-  that change hardware state (display, PMIC, clocks, GPIOs), killing
-  system services. Take the lock for the whole action:
-  `flock build/device.lock <command>` (or `exec 9>build/device.lock; flock 9`
-  in a script). Read-only console use (`cat`, `dmesg`, `peek`) only needs the
-  usual `build/tab.lock` that scripts/tab already takes.
+## 1. The tablet
+
+- **Access:** `scripts/tab-ssh '<cmd>'` (key-only ssh over the USB cable;
+  `~/Projects/cairn-os/.scaffold/tablet/tsh` wraps the same). A new
+  computer or key pairs once with `scripts/tab-ssh --pair` and a tap on
+  "Allow" on the tablet. The unauthenticated shell (2323), the register
+  console (23, `scripts/tab`, `tab-put`, `tab-get`, `tab-shot`,
+  `tab-unlock`) and adb exist only in open mode (`duranium.usb_debug=open`,
+  bring-up images); image 26102701 still has them until its next update.
+  Screenshots: Phosh's D-Bus API (`org.gnome.Shell.Screenshot`) over ssh.
+- **Log every disruptive action** in `~/Projects/cairn-os/.scaffold/tablet/LOG.md`
+  (one line: time, session, action, result) and hold the device lock for
+  the whole action: `flock build/device.lock <command>` (or
+  `exec 9>build/device.lock; flock 9` in a script). Disruptive: reboot,
+  Download mode, flashing, `scripts/duranium-update`, service changes,
+  `duranium-usb-debug off`, rmmod/insmod of a loaded driver, register pokes,
+  installs, long tests. Read-only use needs neither.
+- **Every test comes back without a human:** know the return path first
+  (boot counting, a timer that undoes the change, Download mode). Turning
+  USB debug off on a running tablet needs a timer that turns it on again
+  (2026-11-20: an untested "on" left debug unreachable until a reboot).
 - **Never full-reinstall Duranium** (`scripts/duranium-boot --wipe-user-data`,
-  install-to-userdata.sh): it erases the user's encrypted root. Deliver
-  images only with `scripts/duranium-update` (A/B slots, hash-checked,
+  install-to-userdata.sh): it erases the owner's encrypted root. Deliver
+  images with `scripts/duranium-update` (A/B slots, hash-checked,
   boot-counted; the booted version stays as fallback).
-- The user types the disk passphrase on every boot; a reboot interrupts them.
-  Batch reboots, tell the user before one.
-- Exactly one `scripts/devd.sh` runs (the coordinator's). Do not start another.
-- Tell the user only to do physical things (passphrase, buttons, looking at
-  the screen).
+- **Flashing a Cairn OS image** is allowed by the owner (2026-11-20), only
+  after the image passed its QEMU tests, with Duranium kept recoverable
+  (A/B or a documented way back) and anything in /home not yet backed up
+  copied off first (Pictures: `~/Backups/tablet-sm-t570/`). Ask tablet-lab
+  first; it schedules the window.
+- The owner types the disk passphrase at every boot (remote unlock needs
+  open mode): batch reboots and say before one. Ask the owner only for
+  physical actions, one at a time, saying what to do and for how long.
 
-## 2. Builds (one laptop that overheats)
+## 2. Builds (one PC; it crashed from memory exhaustion on 2026-11-20)
 
-- All kernel / package / image builds hold `build/kbuild.lock` (scripts
-  already do). One heavy build at a time; keep `scripts/thermal-guard` running.
-- **Memory (16 GB RAM, the laptop OOM-killed the desktop app on
-  2026-10-22):** every heavy job holds `build/kbuild.lock`, not only builds:
-  Ghidra/`rea` analysis and decompile batches (the JVM takes up to 4 GB),
-  mkosi, podman builds, big `make` runs. Use `-j8` at most for make. Do not
-  leave JVMs, dev servers or other large processes running when idle.
-  zram is RAM-backed and is not a safety net; a 16 GB disk swapfile
-  (/var/swap/swapfile, priority 10) and vm.min_free_kbytes=131072 are.
-- QEMU test VMs (tests/virt) hold `build/vm.lock` instead (one VM at a time,
-  ≤ 3 GiB, nice 10, start only with ≥ 4 GiB available, powered off below 1.5 GiB).
-- Kernel work happens on your own branch in your own worktree
-  (`git -C src/linux worktree add ../../build/wt/<name> -b drv/<name> integ`,
-  out of tree `O=build/wt/<name>-out`). Only the coordinator merges into
-  `integ` / `gtactive3wifi` after an on-device test.
-- **The Duranium image is built by one session at a time** (the shared
-  build/wt/duranium worktree, `mkosi.version` and `mkosi.output`). Current
-  image owner (since 2026-10-22 evening): "Camera firmware drivers and OS
-  setup", which also runs the user's test campaign. Others
-  hand it package/kernel changes instead of building images themselves.
-  2026-10-24 10:59: "Suspend, updates, cores" built one local Phosh image
-  there with the coordinator's OK (26102307~test1 = kernel r23 + device
-  r46, `mkosi.version` left at 26102307~test1; the 26102219~test4 outputs
-  were removed) and handed the worktree back.
-- The pmaports worktree (build/wt/pmaports-duranium) is shared: commit your
-  aport change right away and bump pkgrel; never leave edits uncommitted.
-- The main checkout is shared too: when a push is rejected, `git pull
+- Every build, test suite, emulator, image build or VM goes through
+  `agent-heavy --mem <GB> --label <what> -- <command>` (at most 2 jobs
+  machine wide, a hard memory cap). Podman jobs also pass
+  `--memory=<N>g --memory-swap=<N>g` and a CPU limit. `make -j8` at most;
+  one kernel build at a time. Never leave emulators, VMs, dev servers or
+  JVMs running when idle.
+- Builds in this repo still take `build/kbuild.lock` (scripts do), QEMU VMs
+  `build/vm.lock` (tests/virt).
+- Kernel work on your own branch and worktree
+  (`git -C src/linux worktree add ../../build/wt/<name> -b drv/<name> integ`);
+  tablet-lab merges after an on-device test.
+- The main checkout is shared: when a push is rejected, `git pull
   --rebase`, never `git reset` to origin/main (a reset dropped another
-  session's unpushed commits on 2026-10-24).
+  session's commits on 2026-10-24). Aport changes: commit right away, bump
+  pkgrel.
 
 ## 3. Reporting
 
-- When you have something to test on the device or to merge, message the
-  coordinator with: branch, commits, what to test, how to recover if it fails.
+- To test something on the tablet or to merge: message tablet-lab with the
+  branch, commits, what to test and how to recover if it fails.
 - Proprietary material (firmware/, extracted blobs, decompiled code, keys,
   serials, MACs) is never committed.

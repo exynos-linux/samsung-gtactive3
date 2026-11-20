@@ -5,6 +5,51 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-20 13:20 AEDT (session "tablet-lab", coordinator): acceleration merged, USB debug secured, popup fixed
+
+- tablet-lab coordinates the SM-T570 and this repo now (docs/COORDINATION.md
+  rewritten: access `scripts/tab-ssh`, LOG at
+  `~/Projects/cairn-os/.scaffold/tablet/LOG.md`, `agent-heavy` for builds,
+  Cairn images allowed after a QEMU pass).
+- **Merged to main and pushed:** samsung-gtactive3-common r52 (touch boost
+  held while a finger rests; irqbalance with a per-core policy script:
+  display/SPI CPU1, UFS CPU2, Wi-Fi/USB CPU3, none on CPU4-7; both live
+  on the tablet, TESTPLAN D12) and duranium-build 0046 (builder image from
+  `gitlab.nura.eco:5050/nura/nura-oci:edge`: postmarketOS is Nura; the 403
+  is gone). Then duranium-usb-debug r7 + common r53 (below).
+- **USB debug (r7):** key-only ssh, pairing on TCP 2324 with an on-screen
+  Allow, indicator once per connection with Turn off, `duranium-usb-debug
+  on|off|status|keys|unpair`; the shell 2323, register console 23, kernel
+  log 24 and adbd only with `duranium.usb_debug=open`. Verified on the
+  tablet from /run (D13); the open-mode gating and the polkit button need
+  an r7 image. Host tools: `scripts/tab-ssh`, installer console.py and
+  `scripts/duranium-update` fall back to / prefer the USB ssh; Cairn's
+  `tsh` uses ssh, falls back to 2323. `scripts/tab`, `tab-shot`,
+  `tab-unlock`, `duranium-check` still need open mode.
+- **The USB popup:** Nura's usb-moded-notify looped because usb-signaller
+  sees g_debug as the read-only "Netboot" mode. Fixed by a drop-in (in r7;
+  live on the tablet in /etc/systemd/user since 12:09, survived a reboot).
+- **Tablet state (26102701):** this PC's key in
+  /etc/duranium-usb-debug/authorized_keys and /root/.ssh/authorized_keys;
+  root's shadow `!` → `*` (no password; OpenSSH without PAM refuses a
+  locked account); the usb-moded-notify drop-in in /etc/systemd/user.
+  Restarted by the owner at 12:47 after my off/on test left debug
+  unreachable (cause fixed, retest passed).
+- **CI:** run 44652303985 built all packages; both dev images failed in
+  mkosi's base install ("systemd-262.2-r0: failed to commit
+  usr/sbin/init"), release images skipped (export unverified). Nothing
+  published; PLAN.md step 1. check.yml's installer suite: 7 of 50 fail on
+  its first run, the installer files unchanged since the variants merge.
+- **Battery care / power saver:** the owner's request (2026-11-20) runs
+  in its own session ("Battery care and efficient power saver").
+- In flight: nothing running here. Local `build/shots/` has the D13
+  screenshots; logs/test-runs/2026-11-20-responsiveness the D12 data.
+- Next three steps: as PLAN.md "Next three steps (2026-11-20)".
+- Waits for the owner: a NetworkManager profile on this PC for the
+  tablet's USB link (link-local IPv6, IPv4 optional; the auto profile
+  fails without the tablet's DHCP); the earlier items below (org site
+  record, V1, D11 unplug, phoc MR).
+
 ## State 2026-11-19 07:05 AEDT (session "accelerate-factcheck"): responsiveness
 
 - The owner found the tablet slow and asked for the facts and a fix, with

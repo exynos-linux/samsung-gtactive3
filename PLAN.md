@@ -15,27 +15,27 @@ Rule for every test: a failure must come back to the USB console without anyone
 touching the tablet (reset → Download mode → automatic reflash, or watchdog reset
 → BOOT). No boot stages on RECOVERY.
 
-## Next three steps (2026-11-19)
+## Next three steps (2026-11-20)
 
-1. The images build again: every `images` run from 2026-11-11 to
-   2026-11-19 stopped before building with a 403 for
-   docker-postmarketos:edge. Cause (2026-11-20): postmarketOS is Nura now,
-   gitlab.postmarketos.org redirects to gitlab.nura.eco and the image
-   moved to `gitlab.nura.eco:5050/nura/nura-oci:edge` (same repositories
-   and packages; upstream's mkosi image already comes from there).
-   duranium-build 0046 uses it; the builder image and r52 build with it
-   here. Then TESTPLAN V1 and V4 (legacy image names) on the SM-T570 with
-   the dev image it publishes.
-2. Responsiveness (branch `accelerate-factcheck`, samsung-gtactive3-common
-   r51): TESTPLAN D12 on the SM-T570 with a local image of the branch
-   (touch boost, irqbalance, then the D12.3 baseline: boot, storage,
-   frames), merge what passes; docs/STATUS.md "Responsiveness" says what
-   is behind each item.
-3. The open SM-T570 work of 2026-10-25, unchanged: r25 boots counted to 5
-   and `scripts/pmos-verify`; r26 (autofocus, V4L2 controls,
-   drv/wifi-recover, the mic slider, now `samsung-gtactive3-common`); the
-   boot hang, C2 and deep sleep. The LTE first boot (TESTPLAN V2/V3) when
-   a T575 owner joins (docs/VARIANTS.md).
+1. The dev images build again. The registry 403 is fixed (duranium-build
+   0046, `gitlab.nura.eco:5050/nura/nura-oci:edge`): run 44652303985
+   built every package, then both dev images stopped in mkosi's base
+   install with "systemd-262.2-r0: failed to commit usr/sbin/init: No such
+   file or directory" (and udevadm). Nura's postmarketos-base 79 enacts
+   bin-merge (2026-11-15) and installs merge-usr, but upstream's own
+   scheduled build of 2026-11-17 passed, so something in our build
+   differs. Find it, then TESTPLAN V1, V4 and D12/D13 with the dev image.
+2. Ship USB debug security and responsiveness in one image (common r53,
+   duranium-usb-debug r7, both on main): `scripts/duranium-update` to the
+   SM-T570 over the USB ssh, then D13's open items (Turn off button, off
+   across a boot, open mode via the boot menu) and D12 (touch with the
+   interrupts moved, power-saver, the D12.3 baseline).
+3. Cairn OS on the SM-T570 (workstream 5 of `~/Projects/cairn-os/ROADMAP.md`):
+   the kernel as a .deb, firmware and device packages for the Debian base
+   with the images session; flash a Cairn image only after its QEMU pass,
+   Duranium kept recoverable. The 2026-10-25 work (r25 counted boots and
+   `scripts/pmos-verify`, r26, the boot hang, C2, deep sleep) and the LTE
+   first boot stay queued behind these.
 
 The layer lists below are the original bring-up plan; docs/STATUS.md says
 what is verified today.

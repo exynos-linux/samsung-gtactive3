@@ -8,7 +8,9 @@ maintains everything else, and the image workflow is intended to follow theirs.
 **Current build status (2026-11-20):** image builds failed from
 2026-11-11 to 2026-11-19 with a 403 fetching the postmarketOS builder
 image, which moved to Nura's registry; duranium-build 0046 takes it from
-there (PLAN.md step 1). The connected Phosh tablet successfully verified its signed
+there. The next run (44652303985) built every package and then failed in
+the dev images' base install (systemd vs Nura's bin-merge, PLAN.md step 1),
+so nothing new is published yet. The connected Phosh tablet successfully verified its signed
 manifest on `samsung-gtactive3wifi_phosh_edge-dev` and listed 26102701 as
 both current and the newest available version. Its old repository URL
 still redirects successfully. An "up to date" result therefore means up to
