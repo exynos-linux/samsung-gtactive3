@@ -452,6 +452,8 @@ units copied to /run, nothing installed):
 | D13.4 | `usb-debug-ctl off`, `on` from a timer 45 s later | ✘ first try: usb-signaller's own NCM gadget kept the name usb0, ours came up as usb1, nothing listened until a reboot; ✔ with rm_gadget: back on usb0, ssh at once |
 | D13.5 | popup: drop-in for usb-moded-notify, reboot | ✔ `Result=exec-condition`, no chooser after the reboot |
 | D13.6 | installer over ssh: `GTA3_CONSOLE_PORT=2399 console.py probe/cmd/put/hash/get` | ✔ 3 MB upload, matching sha256 |
+| D13.7 | image 26112001: 👆 Turn off in the notification, a path unit on the off flag turns it on 60 s later | ✔ 2026-11-20 16:03:00 duranium-usb-debug-off.service started by the user through the polkit rule (no prompt), flag in /etc, link down; on again 16:04:01 |
+| D13.8 | image 26112001: sockets without open mode | ✔ sshd 22 and pair 2324 only; 23, 24, 2323 skipped (ConditionKernelCommandLine) |
 
 Arming a way back for an off test: the re-enable must follow the off, not
 the moment the owner is asked; a fixed timer can fire before the tap. Use
@@ -463,10 +465,9 @@ a path unit on the off flag:
 ssh master hanging and the tablet looking unreachable. tab-ssh now sends
 keepalives so a dead master exits; "on" while on should be a no-op (r8).
 
-Still open, with an r7 image: 👆 Turn off from the notification (polkit);
-`duranium-usb-debug on` from a root terminal; boot with the off flag set
-(the initrd's gadget is torn down after switch-root); ports 23/24/2323 closed
-without open mode and open with `duranium.usb_debug=open` typed in the boot
+Still open, with an r7 image: `duranium-usb-debug on` from a root terminal
+works (owner, 15:43) but rebuilds the gadget when already on; boot with the off flag set
+(the initrd's gadget is torn down after switch-root); ports 23/24/2323 open with `duranium.usb_debug=open` typed in the boot
 menu; `scripts/duranium-update` over the USB ssh.
 
 Host side (this PC): the auto-created NetworkManager profile for the
