@@ -5,6 +5,29 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-20 21:30 AEDT (session "tablet-lab"): read-only checks, osk sysext, r55
+
+- No writes to userdata's nested GPT, the ESP or protected partitions (Cairn flash
+  paused by the owner). Everything ran under build/device.lock, logged in
+  ~/Projects/cairn-os/.scaffold/tablet/LOG.md.
+- 26112002~test2 already carries PLAN step 2: the r52 touch boost (floors 832/1066
+  MHz, screen and pen), irqbalance over CPU0-3 and r7's secure USB debug (usb0:22
+  key-only, usb0:2324 pairing, no 23/2323, no adbd). STATUS rows updated.
+- osk's sysext ran from /run/extensions (logs/test-runs/2026-11-20-osk-sysext):
+  cairn-osk shows; its touch tests wait for someone at the tablet. The refresh made
+  udiskie pop a polkit "mount /dev/loop3" dialog; samsung-gtactive3-common r55
+  hides extension loop devices from udisks (verified with the rule from
+  /run/udev/rules.d, which stays there until the next reboot). r55 is not built.
+- scripts/tab-shot falls back to the paired ssh (the port-23 console is closed in
+  secure mode).
+- Finding, not changed: the base system's sshd.service (postmarketOS, enabled)
+  listens on 0.0.0.0:22 with PasswordAuthentication yes, and nftables accepts
+  port 22 on every interface, so the user's password opens ssh from the Wi-Fi
+  (wlan0 has global IPv6 addresses). Turning passwords off or limiting it to
+  usb0/tailscale is the owner's call: it may be how they reach the tablet.
+- Next: PLAN.md's next three steps. Waits for the owner: nothing physical; the
+  sshd decision above whenever they want it.
+
 ## State 2026-11-20 18:40 AEDT (session "tablet-lab"): kernel r28 + r29 live, released
 
 - The SM-T570 runs 26112002~test2 (phosh edge, kernel r29 = r28 FS_VERITY +

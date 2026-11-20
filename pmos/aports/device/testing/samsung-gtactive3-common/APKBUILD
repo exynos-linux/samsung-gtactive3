@@ -11,7 +11,7 @@ maintainer="dixonSolutions <203963471+dixonSolutions@users.noreply.github.com>"
 pkgname=samsung-gtactive3-common
 pkgdesc="Samsung Galaxy Tab Active3: support shared by every variant"
 pkgver=2
-pkgrel=54
+pkgrel=55
 url="https://github.com/exynos-linux/samsung-gtactive3"
 license="MIT"
 arch="aarch64"
@@ -97,6 +97,7 @@ source="
 	gtactive3wifi-usb-resume.service
 	60-gtactive3wifi-pm.rules
 	61-gtactive3wifi-battery-care.rules
+	81-gtactive3wifi-extension-images.rules
 	modprobe-gtactive3wifi-camera.conf
 	libcamera-softisp.yaml
 	sysupdate-retry.conf
@@ -232,6 +233,7 @@ package() {
 		"$pkgdir"/usr/libexec/gtactive3wifi/usb-resume-check
 	install -Dm644 "$srcdir"/60-gtactive3wifi-pm.rules \
 		"$srcdir"/61-gtactive3wifi-battery-care.rules \
+		"$srcdir"/81-gtactive3wifi-extension-images.rules \
 		-t "$pkgdir"/usr/lib/udev/rules.d/
 	# another UI (phosh, gnome, ...) through the A/B update
 	install -Dm755 "$srcdir"/switch-ui.sh \
@@ -503,6 +505,7 @@ dd982aead67e3cc4d6b0b128395d21bcbcd4065f3cfd5c1733123813a48169032a499ee8788c1de3
 9d5cf13e6260f3c30417156e013c54dc3806ca0ab732d07396e62fd2438ed1ba15bfc4f2f9275814cd17e82407b281df2b6c51f1176f525590aaaca6366df34d  gtactive3wifi-usb-resume.service
 26af87d4a912495b3f46a120eceab3ebfe58337e7006fae0a9d2057e98ac69507ddb0c44550abc7e3482769e74db2844c013fc12c62916021776fc3cf3bd1e09  60-gtactive3wifi-pm.rules
 fc83f6ebbc3488746c6a43bdbc166f660b5a4ce47529643707dd459a66a426bac5e46f0cd9038953edd78b2b8054cecd19c346d691cf319cce81f8fa60bfd8da  61-gtactive3wifi-battery-care.rules
+db46e9b3e2cd049008fed160f4a41ac25e2e840e927f5e64761b0e571af5eb7b8e358958caa49b206d170737597fa0d775712f8ffbc07490db8e8c1588a47072  81-gtactive3wifi-extension-images.rules
 80f67a6e205e9998eb10797c0fa0bbcca2863559f87551104b5d1d5fc74d5251a7ec8ab6492fe24a8cc35364a9e9e34e779425b280864d4a60c764f78c0108cb  modprobe-gtactive3wifi-camera.conf
 e69977e58e3982a3b827e6fa95286e52b866bea691180ac360023a6e23b1ffc3fb480dba6949d95ab20e1852d7e33d784afdb7a71e19c1feecbc73e4c0d93eb0  libcamera-softisp.yaml
 ee138d47dfd10ccd3864040abbf7838461178194f605430c9a3f1fa5288efb40432e6dda03df1c98c1ceae013d98d706b3d9919a5593b2c30b39a4fb4d872e6e  sysupdate-retry.conf

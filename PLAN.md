@@ -40,8 +40,8 @@ touching the tablet (reset → Download mode → automatic reflash, or watchdog 
    (battery care on after the first boot: kernel r27 +
    samsung-gtactive3-common r54, merged 2026-11-20).
 2. Ship USB debug security and responsiveness in one image (common r53,
-   duranium-usb-debug r7, both on main): `scripts/duranium-update` to the
-   SM-T570 over the USB ssh, then D13's open items (Turn off button, off
+   duranium-usb-debug r7, both on main): shipped, live in 26112002~test2
+   (checked 2026-11-20 21:23, STATUS). Left: D13's open items (Turn off button, off
    across a boot, open mode via the boot menu) and D12 (touch with the
    interrupts moved, power-saver, the D12.3 baseline).
 3. Cairn OS on the SM-T570 (workstream 5 of `~/Projects/cairn-os/ROADMAP.md`;
