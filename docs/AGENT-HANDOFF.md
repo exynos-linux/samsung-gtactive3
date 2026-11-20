@@ -5,7 +5,7 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
-## State 2026-11-20 18:50 AEDT (session "tablet-lab"): kernel r28 + r29 live, released
+## State 2026-11-20 18:40 AEDT (session "tablet-lab"): kernel r28 + r29 live, released
 
 - The SM-T570 runs 26112002~test2 (phosh edge, kernel r29 = r28 FS_VERITY +
   battery care's CNFG_00 CHG gate), A/B over 26112001 (kept as the fallback),
