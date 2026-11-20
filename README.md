@@ -15,8 +15,10 @@ in [docs/VARIANTS.md](docs/VARIANTS.md). The US SM-T577U is not supported
 
 ## Status
 
-SM-T570, as of 2026-10-25, in postmarketOS Duranium (Phosh). The strict, per-block
-table with sources and test runs is [docs/STATUS.md](docs/STATUS.md).
+SM-T570 in postmarketOS Duranium (Phosh). Hardware results below are from
+the tests through 2026-10-25; the connected tablet was checked on
+2026-11-19 and was running image 26102701. The strict, per-block table
+with sources and test runs is [docs/STATUS.md](docs/STATUS.md).
 
 | Area | State |
 |---|---|
@@ -31,6 +33,7 @@ table with sources and test runs is [docs/STATUS.md](docs/STATUS.md).
 | Audio: speaker, microphone, headphone jack | ⚠️ speaker, mic and plug-in pass; unplug untested |
 | Battery and charging | ⚠️ charges; temperature-based limits not booted yet |
 | CPU idle (C2) | ❌ off by default: it hangs or slows the system |
+| Responsiveness | ⚠️ touch boost (held contacts included) and interrupt spreading pass live trials on the tablet (2026-11-20, device package r52); not yet in a published image |
 | Bluetooth, S Pen, microSD, NFC, Home/Recent keys, flash LED | ❔ drivers load; not tested in the UI yet |
 | Volume-down and Active keys, GPS, fingerprint | ❌ |
 
@@ -69,12 +72,17 @@ Step by step, requirements and the way back to Android:
 ## Downloads and updates
 
 Images (Phosh, GNOME) are in the
-[releases](https://github.com/exynos-linux/samsung-gtactive3/releases), rebuilt
-automatically on top of each postmarketOS publish. Today only the development
-channels have builds; the release channels get one once an export passes on
-the device (`scripts/pmos-verify`). Installed tablets update
-from there with `updatectl update` (A/B, signed, automatic rollback). Vendor
-firmware is not included. [docs/RELEASES.md](docs/RELEASES.md) explains it all.
+[releases](https://github.com/exynos-linux/samsung-gtactive3/releases). The
+build is intended to follow postmarketOS publishes; image builds failed
+from 2026-11-11 to 2026-11-19 (the builder image moved to Nura's
+registry, fixed 2026-11-20), so the latest published image can be old. On 2026-11-19
+the connected Phosh tablet verified its update manifest: 26102701 was both
+installed and the newest version on its development channel. The local
+responsiveness changes are not in that image. Development channels have
+builds; release channels require an export to pass on the device
+(`scripts/pmos-verify`). Installed tablets update with `updatectl update`
+(A/B, signed, automatic rollback). Vendor firmware is not included.
+[docs/RELEASES.md](docs/RELEASES.md) explains the channels and checks.
 
 ## Development loop
 

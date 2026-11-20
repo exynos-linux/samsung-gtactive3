@@ -3,7 +3,19 @@
 The project publishes postmarketOS **Duranium** images for the Galaxy Tab
 Active3 (SM-T570) itself, and the tablets update from this repository. We
 maintain the kernel, the drivers and the device packages. postmarketOS
-maintains everything else, and our images follow theirs automatically.
+maintains everything else, and the image workflow is intended to follow theirs.
+
+**Current build status (2026-11-20):** image builds failed from
+2026-11-11 to 2026-11-19 with a 403 fetching the postmarketOS builder
+image, which moved to Nura's registry; duranium-build 0046 takes it from
+there (PLAN.md step 1). The connected Phosh tablet successfully verified its signed
+manifest on `samsung-gtactive3wifi_phosh_edge-dev` and listed 26102701 as
+both current and the newest available version. Its old repository URL
+still redirects successfully. An "up to date" result therefore means up to
+date with that channel, not necessarily with upstream postmarketOS or a
+local branch. The automatic update timer was disabled on this tablet; that
+is separate from the successful manual availability check. The local
+`accelerate-factcheck` changes are not published in that channel.
 
 Official record of what is published (versions, files, sizes, sha256,
 signature key): **https://exynos-linux.github.io/samsung-gtactive3/**

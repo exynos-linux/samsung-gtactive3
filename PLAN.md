@@ -17,12 +17,15 @@ touching the tablet (reset → Download mode → automatic reflash, or watchdog 
 
 ## Next three steps (2026-11-19)
 
-1. The images build again: every `images` run since 2026-11-11 stops
-   before building, because postmarketOS's registry answers 403 to the
-   runner's token for docker-postmarketos:edge (run 44203340654). Take the
-   builder image from a registry we control (or build it from
-   alpine:edge), then TESTPLAN V1 and V4 (legacy image names) on the
-   SM-T570 with the dev image it publishes.
+1. The images build again: every `images` run from 2026-11-11 to
+   2026-11-19 stopped before building with a 403 for
+   docker-postmarketos:edge. Cause (2026-11-20): postmarketOS is Nura now,
+   gitlab.postmarketos.org redirects to gitlab.nura.eco and the image
+   moved to `gitlab.nura.eco:5050/nura/nura-oci:edge` (same repositories
+   and packages; upstream's mkosi image already comes from there).
+   duranium-build 0046 uses it; the builder image and r52 build with it
+   here. Then TESTPLAN V1 and V4 (legacy image names) on the SM-T570 with
+   the dev image it publishes.
 2. Responsiveness (branch `accelerate-factcheck`, samsung-gtactive3-common
    r51): TESTPLAN D12 on the SM-T570 with a local image of the branch
    (touch boost, irqbalance, then the D12.3 baseline: boot, storage,
