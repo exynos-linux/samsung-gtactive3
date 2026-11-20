@@ -18,14 +18,23 @@ touching the tablet (reset → Download mode → automatic reflash, or watchdog 
 ## Next three steps (2026-11-20)
 
 1. The dev images build again. The registry 403 is fixed (duranium-build
-   0046, `gitlab.nura.eco:5050/nura/nura-oci:edge`): run 44652303985
-   built every package, then both dev images stopped in mkosi's base
-   install with "systemd-262.2-r0: failed to commit usr/sbin/init: No such
-   file or directory" (and udevadm). Nura's postmarketos-base 79 enacts
-   bin-merge (2026-11-15) and installs merge-usr, but upstream's own
-   scheduled build of 2026-11-17 passed, so something in our build
-   differs. Find it, then TESTPLAN V1, V4 and D12/D13 with the dev image,
-   and D14.7 (battery care on after the first boot: kernel r27 +
+   0046). Run 44652303985 then failed in mkosi's base install with
+   "systemd-262.2-r0: failed to commit usr/sbin/init: No such file or
+   directory" (and udevadm). Cause, reproduced here 2026-11-20 with clean
+   upstream duranium-build (`device-qemu-amd64 ui-phosh`): an upstream
+   regression, not our packages. mkosi's tools tree takes apk-tools
+   3.0.10 (built 2026-11-19, after upstream's last green build on 11-17);
+   with the container's apk 3.0.9 (`--tools-tree=`) the same base installs
+   without errors (that route then fails at the initrd for lack of GNU
+   cpio). apk 3.0.10's "db: adopt only real directories" / "fs: resolve
+   fsdir paths within the destination root" are the likely changes, with
+   Nura's bin-merge (postmarketos-base 79). Upstream's next scheduled
+   build will hit it too. Fix: pin apk 3.0.9 in the build (not possible
+   from mkosi.tools.conf scripts, which mkosi ignores; a local tools
+   package directory needs openssl in the container; an apk-tools-static
+   3.0.9 sandbox tree is untested), or a fixed apk/systemd upstream.
+   Then TESTPLAN V1, V4 and D12/D13 with the dev image, and D14.7
+   (battery care on after the first boot: kernel r27 +
    samsung-gtactive3-common r54, merged 2026-11-20).
 2. Ship USB debug security and responsiveness in one image (common r53,
    duranium-usb-debug r7, both on main): `scripts/duranium-update` to the
