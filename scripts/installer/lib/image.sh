@@ -35,12 +35,37 @@ else:
 PY
 }
 
+# A local --image's working copy in the cache (copied, or unpacked from a
+# local .zst) is deleted once the install is done with it, and on any
+# failure or interrupt: it can hold what the user's own image carries (a
+# first user's password hash on the ESP) plus the vendor firmware we add.
+# Plain rm: shred does nothing useful on copy-on-write filesystems (btrfs).
+# Downloaded release images stay cached for the next run.
+IMG_TEMP=
+
+# image_cleanup: delete the local image's working copy (if any)
+image_cleanup() {
+	[ -n "$IMG_TEMP" ] || return 0
+	dry || rm -f -- "$IMG_TEMP" "$IMG_TEMP.part"
+	IMG_TEMP=
+}
+
 # image_prepare ZST|RAW: sets IMG_FILE (raw, in the cache) and IMG_LEN
 image_prepare() {
 	local src=$1 raw
+	raw=$CACHE_DIR/images/$(basename "${src%.zst}")
+	# a local image's copy (never the user's own file), marked before it is
+	# made so that a half-written one goes too. No other EXIT/INT/TERM trap
+	# in the installer; die() exits, so EXIT covers every failure.
+	if [ -n "${OPT_IMAGE:-}" ] && [ "$src" = "$OPT_IMAGE" ] &&
+		[ "$(realpath -m "$src")" != "$(realpath -m "$raw")" ]; then
+		IMG_TEMP=$raw
+		trap image_cleanup EXIT
+		trap 'exit 130' INT
+		trap 'exit 143' TERM
+	fi
 	case $src in
 		*.zst)
-			raw=$CACHE_DIR/images/$(basename "${src%.zst}")
 			if [ ! -f "$raw" ] || [ "$src" -nt "$raw" ]; then
 				need_space "$(dirname "$raw")" $((7 << 30)) "the unpacked image" || die "not enough space"
 				info "unpacking $(basename "$src") (~6.4 GiB)..."
@@ -50,7 +75,6 @@ image_prepare() {
 			fi ;;
 		*)
 			# a copy: the firmware is added to the image's ESP, never to your file
-			raw=$CACHE_DIR/images/$(basename "$src")
 			if [ "$(realpath "$src")" != "$(realpath -m "$raw")" ]; then
 				mkdir -p "$(dirname "$raw")"
 				need_space "$(dirname "$raw")" "$(stat -c %s "$src")" "a copy of the image" || die "not enough space"

@@ -324,6 +324,7 @@ install_duranium() {
 		[ "$want" = "$got" ] || die "the image read back from the tablet differs (want $want, got $got); run ./setup.sh install again"
 		ok "image verified (GPT + ESP read back)"
 	fi
+	image_cleanup
 	state_set STAGE installed
 	state_set CHANNEL "$IMG_CHANNEL"
 	state_set VERSION "$IMG_VERSION"
