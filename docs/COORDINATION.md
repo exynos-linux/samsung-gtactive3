@@ -59,7 +59,10 @@ Message tablet-lab before anything in section 1 beyond read-only use.
   one kernel build at a time. Never leave emulators, VMs, dev servers or
   JVMs running when idle.
 - Builds in this repo still take `build/kbuild.lock` (scripts do), QEMU VMs
-  `build/vm.lock` (tests/virt).
+  `build/vm.lock` (tests/virt). Local image and kernel builds also hold
+  `~/Projects/cairn-os/.build.lock` (`flock ~/Projects/cairn-os/.build.lock agent-heavy ...`):
+  the Cairn repos have no CI runner and build locally too (2026-11-20), one
+  heavy build at a time across all projects.
 - Kernel work on your own branch and worktree
   (`git -C src/linux worktree add ../../build/wt/<name> -b drv/<name> integ`);
   tablet-lab merges after an on-device test.
