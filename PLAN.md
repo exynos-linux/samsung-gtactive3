@@ -32,9 +32,10 @@ touching the tablet (reset → Download mode → automatic reflash, or watchdog 
    SM-T570 over the USB ssh, then D13's open items (Turn off button, off
    across a boot, open mode via the boot menu) and D12 (touch with the
    interrupts moved, power-saver, the D12.3 baseline).
-3. Cairn OS on the SM-T570 (workstream 5 of `~/Projects/cairn-os/ROADMAP.md`):
-   the kernel as a .deb, firmware and device packages for the Debian base
-   with the images session; flash a Cairn image only after its QEMU pass,
+3. Cairn OS on the SM-T570 (workstream 5 of `~/Projects/cairn-os/ROADMAP.md`;
+   Cairn stays on Nura with apk, owner's correction 2026-11-20): the
+   kernel, firmware and device packages stay apks as here, wired into the
+   Cairn image with the images session; flash a Cairn image only after its QEMU pass,
    Duranium kept recoverable. The 2026-10-25 work (r25 counted boots and
    `scripts/pmos-verify`, r26, the boot hang, C2, deep sleep) and the LTE
    first boot stay queued behind these.
