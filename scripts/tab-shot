@@ -11,6 +11,8 @@
 # whatever IDMA_G0 scans out (IDMA_IN_BASE_ADDR_Y, 0x16071040). memcat goes
 # through /dev/mem, which cannot map ordinary RAM such as the CMA buffers
 # the KMS driver flips between (STRICT_DEVMEM): use the default there.
+# Without the open console (secure USB debug) the default reads over
+# scripts/tab-ssh instead.
 set -euo pipefail
 P=$(cd "$(dirname "$0")/.." && pwd)
 OUT=${1:-$P/build/shots/shot-$(date +%Y%m%d-%H%M%S).png}
@@ -23,33 +25,44 @@ BASE=${BASE:-}
 if [ "$BASE" = live ]; then
 	BASE=$(flock "$P/build/tab.lock" "$P/scripts/tab" "peek 0x16071040" | tr -d '\r\n')
 fi
-flock "$P/build/tab.lock" python3 -I - "$LL%$ifc" "$OUT" "$BASE" "$SRC" <<'PY'
-import socket, struct, sys, zlib
-addr, out, base, src = sys.argv[1:5]
+flock "$P/build/tab.lock" python3 -I - "$LL%$ifc" "$OUT" "$BASE" "$SRC" "$P" <<'PY'
+import socket, struct, subprocess, sys, zlib
+addr, out, base, src, top = sys.argv[1:6]
 W, H = 1200, 1920
 n = W * H * 4
-s = socket.create_connection((addr, 23), timeout=30)
-s.settimeout(30)
-buf = b""
-while not buf.endswith(b"> "):
-    d = s.recv(65536)
-    if not d:
-        sys.exit("console closed before the prompt")
-    buf += d
-if base:
-    s.sendall(f"memcat {int(base, 0):#x} {n}\n".encode())
-else:
-    s.sendall(f"cat {src}\n".encode())
-data = bytearray()
-while len(data) < n:
-    d = s.recv(min(1 << 20, n - len(data)))
-    if not d:
-        sys.exit(f"short read: {len(data)} of {n} (no memcat on this console?)")
-    data += d
-    # an error answer is short and followed by the prompt: don't wait for n bytes
-    if len(data) < 256 and data.endswith(b"> ") and (data.startswith(b"error") or b"\n" in data):
-        sys.exit("read failed on the device: %r" % bytes(data[:200]))
-s.close()
+try:
+    s = socket.create_connection((addr, 23), timeout=30)
+except ConnectionRefusedError:
+    # The open console (port 23) exists only in open/bring-up mode
+    # (duranium.usb_debug=open); a secure image answers on the paired ssh.
+    if base:
+        sys.exit("BASE needs the console on port 23 (open USB debug mode)")
+    data = subprocess.run([top + "/scripts/tab-ssh", f"cat {src}"], stdout=subprocess.PIPE, check=True).stdout
+    if len(data) < n:
+        sys.exit(f"short read over ssh: {len(data)} of {n}")
+    s = None
+if s:
+    s.settimeout(30)
+    buf = b""
+    while not buf.endswith(b"> "):
+        d = s.recv(65536)
+        if not d:
+            sys.exit("console closed before the prompt")
+        buf += d
+    if base:
+        s.sendall(f"memcat {int(base, 0):#x} {n}\n".encode())
+    else:
+        s.sendall(f"cat {src}\n".encode())
+    data = bytearray()
+    while len(data) < n:
+        d = s.recv(min(1 << 20, n - len(data)))
+        if not d:
+            sys.exit(f"short read: {len(data)} of {n} (no memcat on this console?)")
+        data += d
+        # an error answer is short and followed by the prompt: don't wait for n bytes
+        if len(data) < 256 and data.endswith(b"> ") and (data.startswith(b"error") or b"\n" in data):
+            sys.exit("read failed on the device: %r" % bytes(data[:200]))
+    s.close()
 # XRGB8888 little endian: B G R X -> RGB rows with a filter byte
 raw = bytearray()
 for y in range(H):
