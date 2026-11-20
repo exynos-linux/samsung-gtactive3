@@ -26,7 +26,7 @@ persistent=sda17, misc=sda18, metadata=sda24, cache=sda28. Also cpefs=sdd1.
 | i2c 3-001b | rt5665 | audio codec |
 | i2c 4-0034 | rt5510 | speaker amp |
 | i2c 5-0027 | sec-nfc | NFC (S.LSI, fw 6.2.9) |
-| i2c 6-0056 | wacom_w90xx | S Pen digitiser |
+| i2c 6-0056 (enumerates as i2c-9 9-0056 in Linux 7.3, 2026-11-20 boot log) | wacom_w90xx | S Pen digitiser |
 | i2c 7-0020 | A96T3X6_WIFI | grip sensor |
 | i2c 8-0014 | sm5504 | MUIC / USB switch |
 | i2c 8-0066 (+0x25,0x36,0x62,0x69) | max77705 | PMIC/charger/fuel gauge/USB-PD |

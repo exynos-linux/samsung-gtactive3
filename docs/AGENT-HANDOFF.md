@@ -5,6 +5,35 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-20 17:00 AEDT (session "tablet-lab"): 26112001 checked, chooser facts, osk sysext blocked
+
+- Image 26112001 (r53/r52/r54, kernel r27) booted and blessed on the SM-T570.
+  V4 ✔ once the frozen /etc/sysupdate.d transfers were moved out (backup in
+  /var/lib/tablet-lab-backup/20261120/ on the tablet). D13.7 (Turn off from
+  the notification through polkit) and D13.8 (no open-mode ports) ✔. Results
+  are in TESTPLAN, commit bbac3327.
+- Incident: at 16:08 a second tap on the re-posted USB debugging notification
+  turned debug off with nothing armed to bring it back. The owner ran
+  `sudo duranium-usb-debug on` at 16:44. The r8 notes for duranium-usb-debug:
+  `on` while already on should do nothing, and Turn off should ask first or
+  arm a re-enable timer itself.
+- Facts for the images session's touch boot chooser (cairn), read-only on the
+  device and recorded in the shared note t570-boot-path-for-touch-chooser.md:
+  - the UKI initrd already loads KMS (2.40 s), touch (2.94 s), pen (3.05 s),
+    gpio-keys and the vibrator, well before switch-root (13.48 s);
+  - plymouth runs in the initrd;
+  - kexec_load_disabled=0;
+  - efivars are readable;
+  - the UKI has the profiles main, debug and debug-shell.
+  The boot chain is unchanged until images hands over its prototype.
+- cairn-osk sysext (osk session): it does not mount here. It is squashfs zstd,
+  and our kernel has SQUASHFS_ZLIB/XZ only. Phosh also starts the keyboard
+  from mobi.phosh.OSK.service, not from the desktop file. Both are reported to
+  osk; nothing stayed on the tablet. Waiting for a rebuilt raw.
+- Open: D13 off across a boot, open mode from the boot menu, duranium-update
+  over the USB ssh; the Vol- keycode (owner press). Device lock free.
+  Next three steps: unchanged (PLAN.md).
+
 ## State 2026-11-20 16:50 AEDT (session "battery-care"): D14.7 in image 26112001
 
 - D14.7 partly done on 26112001 (r27 + r54), no reloads, no reboot, under
