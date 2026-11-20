@@ -29,7 +29,8 @@ Legend: ✔ verified · ◐ partly / with caveats (stated) · ✘ broken or not 
 | **Keys** Power, Vol+ | gpio-keys | ✔ | ✔ | — |
 | **Keys** Home, Recent | gpio-keys: Home KEY_HOMEPAGE, Recent KEY_SCALE (580 was above the XKB range); GNOME/Phosh bindings XF86HomePage → app grid, XF86LaunchA → overview (device package, 90_gtactive3wifi.gschema.override, since 2026-10-22) | ✔ events seen | ? fix in every image since 2026-10-22, not pressed in Phosh yet (before the fix: no action) | TESTPLAN D1.7 👆 |
 | **Keys** Back | gpio-keys | ✔ | ✔ (user) | — |
-| **Keys** Vol−, Active | gpa0-4/5 never change level | ✘ | ✘ | find the real line: scan all GPIO/EINT/PMIC while held (needs a human press once) |
+| **Keys** Vol− | gpio-keys KEY_VOLUMEDOWN (114) | ✘ (gpa0-4/5 never changed level then) | ✔ image 26112001 (kernel r27), 2026-11-20 16:57: the owner's press gave 114 down/up on event0 (gpio-keys), read over the USB ssh; Home 172 and Recent 120 seen in the same run | which kernel change fixed it is not traced |
+| **Keys** Active | gpio-keys KEY_PROG1 | ✘ | ? not pressed since | press test (owner) |
 | **Hall sensor** (cover) | gpio-keys SW_LID | ✔ polarity | ? | — |
 | **Vibrator** | gpio-vibrator (GPG3-6) | ✔ (FF rumble toggles the pin, user confirmed off state) | ◐ "vibrating like crazy" = haptics on bogus touches (touch fixed) | verify in GNOME |
 | **Flash LED** RT8547 | leds-rt8547 | ◐ binds; no light test | ? | torch test |
