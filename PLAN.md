@@ -165,8 +165,9 @@ what is verified today.
       2026-11-20: upower 80/85, on/off, the re-apply and a reboot pass;
       the r27 limit does not stop the current (CNFG_09 bit 7; D14.8, D14.9):
       **kernel r29** gates on the CNFG_00 CHG bit and freezes the poll in
-      suspend. Next: r29 in an image, then the hold (I ≤ ~0) and the pause
-      at 85 % while charging; Noru's tile (shell/noru 86932638) in a Noru image
+      suspend. r29 in image 26112002~test2 (2026-11-20): the hold stops the
+      current (2 mA, D14.9 ✔). Next: the pause at 85 % while charging,
+      resume below 80, s2idle without -108; Noru's tile (shell/noru 86932638) in a Noru image
 - [x] Screen-off drain with suspend (D14.8, 2026-11-20): ~171 mA in s2idle
 - [ ] The remaining big items:
       panel/DSIM power-off, MIF devfreq, C2/SICD (roadmap above)

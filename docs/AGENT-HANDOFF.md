@@ -5,6 +5,26 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-20 18:50 AEDT (session "tablet-lab"): kernel r28 + r29 live, released
+
+- The SM-T570 runs 26112002~test2 (phosh edge, kernel r29 = r28 FS_VERITY +
+  battery care's CNFG_00 CHG gate), A/B over 26112001 (kept as the fallback),
+  blessed. Live checks, evidence in logs/test-runs/2026-11-20-r28-live/:
+  fs-verity and the composefs mount parts ✔ (STATUS Storage), D14.9 ✔ with
+  r29 (hold: 2 mA), phosh + osk + audio sinks, no failed units, Bluetooth,
+  inputs, updatectl check against the signed feed.
+- Seen once: the first brcmfmac probe failed (firmware -2, a __flush_work
+  WARNING); wifi-recover brought wlan0 back after 32 s. Not on earlier boots.
+- `~test` UKIs give "Invalid loader entry name" (systemd rejects `~`); local
+  versions only.
+- Export verified (pmos/VERIFIED) and pushed with r28/r29: CI publishes the
+  release channels from it.
+- Next: PLAN.md's next three steps; for battery care the D14.7 pause at 85 %
+  while charging, resume below 80 and s2idle without -108 (the tablet is at
+  99 % now). Kernel consolidation into cairn-os waits for Cairn's first boot
+  (orchestrator), with IKCONFIG or /boot/config for Cairn's config check.
+- Waits for the owner: nothing physical.
+
 ## State 2026-11-20 18:10 AEDT (session "battery care"): D14.8 drain, battery care bug, kernel r29
 
 - D14.8 ✔: ~171 mA in s2idle with the screen off (20 min, RTC wake, USB back;
