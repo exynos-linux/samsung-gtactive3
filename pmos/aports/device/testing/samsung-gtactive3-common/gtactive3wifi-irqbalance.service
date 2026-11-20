@@ -14,7 +14,8 @@ ConditionCPUs=>1
 # The M3 cores take no interrupts: they cost more energy per cycle, and
 # keeping them free leaves them to the foreground tasks EAS moves there.
 Environment=IRQBALANCE_BANNED_CPULIST=4-7
-ExecStart=/usr/sbin/irqbalance --foreground
+# every interrupt balanced per core (the script says why)
+ExecStart=/usr/sbin/irqbalance --foreground --policyscript=/usr/libexec/gtactive3wifi/irqbalance-policy
 Restart=on-failure
 RestartSec=5
 # upstream's unit (misc/irqbalance.service), its file system part

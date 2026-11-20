@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 /*
  * Touch boost, as Samsung's input_booster does on the stock firmware
- * (docs/BATTERY.md, "Scheduler, cpufreq, boosts"): while the screen or the
- * pen is touched, and for TAIL_MS after the last event, each cpufreq
- * policy's frequency floor goes up, so the first frames of a swipe or a tap
+ * (docs/BATTERY.md, "Scheduler, cpufreq, boosts"): while a finger or the
+ * pen is down (BTN_TOUCH, so a finger held still keeps it), and for TAIL_MS
+ * after the release or the last event, each cpufreq policy's frequency
+ * floor goes up, so the first frames of a swipe or a tap
  * are drawn at speed instead of after schedutil has noticed the load from
  * the lowest level. Between touches each policy keeps a resting floor.
  *
@@ -13,8 +14,10 @@
  * floor found there). Only scaling_min_freq is written: the governor still
  * chooses the frequency and the power profiles keep their caps (a floor
  * above scaling_max_freq is lowered to it). A policy that is not there yet
- * (cpufreq-dt is a module) is picked up at the next change; the floors
- * found are restored on SIGTERM.
+ * (cpufreq-dt is a module) is picked up at the next change. On SIGTERM
+ * each policy gets back the floor found there, unless something else has
+ * changed it since our last write (then that value stays). A refused write
+ * is logged once until a write to that policy succeeds again.
  *
  * Without -d, every input device that is a touchscreen (INPUT_PROP_DIRECT)
  * or a pen (BTN_TOOL_PEN: wacom_w9000 sets no INPUT_PROP_DIRECT) is
@@ -49,6 +52,8 @@ struct policy {
 	char max_path[PATH_MAX];
 	long found;		/* floor before we started, -1 = not read yet */
 	long rest, boost;	/* 0 = the floor found */
+	long written;		/* our last floor there, -1 = none */
+	int failed;		/* a refused write was logged */
 };
 
 static struct policy pol[MAX_POLICIES];
@@ -56,6 +61,7 @@ static int npol;
 /* [0] is the inotify watch on /dev/input (-1 with -d), then the devices */
 static struct pollfd pfd[1 + MAX_DEVS];
 static char devname[1 + MAX_DEVS][PATH_MAX];
+static char down[1 + MAX_DEVS];	/* BTN_TOUCH held on that device */
 static int ndev;
 static volatile sig_atomic_t stop;
 
@@ -83,18 +89,19 @@ static long read_khz(const char *path)
 	return strtol(buf, NULL, 10);
 }
 
-static void write_khz(const char *path, long khz)
+/* 0, or -1 with errno set: a refused write leaves the floor as it was */
+static int write_khz(const char *path, long khz)
 {
 	char buf[32];
 	int len = snprintf(buf, sizeof(buf), "%ld\n", khz);
-	int fd = open(path, O_WRONLY | O_TRUNC | O_CLOEXEC);
+	int fd = open(path, O_WRONLY | O_TRUNC | O_CLOEXEC), ret = 0;
 
 	if (fd < 0)
-		return;
-	/* refused values leave the floor as it was; nothing to retry */
+		return -1;
 	if (write(fd, buf, len) != len)
-		perror(path);
+		ret = -1;
 	close(fd);
+	return ret;
 }
 
 static void set_floors(int boosted)
@@ -116,7 +123,14 @@ static void set_floors(int boosted)
 		max = read_khz(p->max_path);
 		if (max > 0 && khz > max)
 			khz = max;
-		write_khz(p->min_path, khz);
+		if (!write_khz(p->min_path, khz)) {
+			p->written = khz;
+			p->failed = 0;
+		} else if (!p->failed) {
+			fprintf(stderr, "%s: cannot write %ld: %s\n", p->min_path,
+				khz, strerror(errno));
+			p->failed = 1;
+		}
 	}
 }
 
@@ -124,9 +138,20 @@ static void restore_floors(void)
 {
 	int i;
 
-	for (i = 0; i < npol; i++)
-		if (pol[i].found >= 0)
-			write_khz(pol[i].min_path, pol[i].found);
+	for (i = 0; i < npol; i++) {
+		struct policy *p = &pol[i];
+		long now;
+
+		if (p->found < 0 || p->written < 0)
+			continue;
+		/* ours, or ours lowered to a cap set later: give it back */
+		now = read_khz(p->min_path);
+		if (now == p->written || now == read_khz(p->max_path))
+			write_khz(p->min_path, p->found);
+		else
+			printf("%s: left at %ld (changed by someone else)\n",
+			       p->min_path, now);
+	}
 }
 
 static int test_bit(const unsigned long *bits, unsigned int bit)
@@ -163,6 +188,7 @@ static void add_dev(const char *path, int check)
 		return;
 	}
 	ndev++;
+	down[ndev] = 0;
 	pfd[ndev].fd = fd;
 	pfd[ndev].events = POLLIN;
 	snprintf(devname[ndev], sizeof(devname[ndev]), "%s", path);
@@ -178,6 +204,7 @@ static void remove_dev(int i)
 	for (; i < ndev; i++) {
 		pfd[i] = pfd[i + 1];
 		memcpy(devname[i], devname[i + 1], sizeof(devname[i]));
+		down[i] = down[i + 1];
 	}
 	ndev--;
 }
@@ -232,7 +259,12 @@ static int drain(int i)
 		ssize_t n = read(pfd[i].fd, ev, sizeof(ev));
 
 		if (n > 0) {
-			count += n / sizeof(ev[0]);
+			int k, got = n / sizeof(ev[0]);
+
+			for (k = 0; k < got; k++)
+				if (ev[k].type == EV_KEY && ev[k].code == BTN_TOUCH)
+					down[i] = ev[k].value != 0;
+			count += got;
 			continue;
 		}
 		if (n < 0 && (errno == EAGAIN || errno == EINTR))
@@ -254,11 +286,22 @@ static int parse_policy(char *arg)
 	snprintf(p->min_path, sizeof(p->min_path), "%s/scaling_min_freq", arg);
 	snprintf(p->max_path, sizeof(p->max_path), "%s/scaling_max_freq", arg);
 	p->found = -1;
+	p->written = -1;
 	p->rest = strtol(rest, NULL, 10);
 	p->boost = strtol(boost, NULL, 10);
 	printf("%s: resting floor %ld kHz, touched %ld kHz\n", arg, p->rest,
 	       p->boost);
 	npol++;
+	return 0;
+}
+
+static int held(void)
+{
+	int i;
+
+	for (i = 1; i <= ndev; i++)
+		if (down[i])
+			return 1;
 	return 0;
 }
 
@@ -324,7 +367,8 @@ int main(int argc, char **argv)
 		struct timespec ts, *timeout = NULL;
 		int touched = 0, i, r;
 
-		if (boosted) {
+		/* while a contact is down the boost waits for its release */
+		if (boosted && !held()) {
 			long long left = deadline - now_ms();
 
 			if (left < 0)

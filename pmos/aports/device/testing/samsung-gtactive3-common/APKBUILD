@@ -11,7 +11,7 @@ maintainer="dixonSolutions <203963471+dixonSolutions@users.noreply.github.com>"
 pkgname=samsung-gtactive3-common
 pkgdesc="Samsung Galaxy Tab Active3: support shared by every variant"
 pkgver=2
-pkgrel=51
+pkgrel=52
 url="https://github.com/exynos-linux/samsung-gtactive3"
 license="MIT"
 arch="aarch64"
@@ -88,6 +88,7 @@ source="
 	gtactive3wifi-input-boost.c
 	gtactive3wifi-input-boost.service
 	gtactive3wifi-irqbalance.service
+	gtactive3wifi-irqbalance-policy
 	system-sleep-usb.sh
 	system-sleep-wifi.sh
 	wifi-recover.sh
@@ -196,6 +197,8 @@ package() {
 	# Samsung's input_booster does, and device interrupts off CPU0
 	install -Dm755 "$srcdir"/gtactive3wifi-input-boost \
 		"$pkgdir"/usr/libexec/gtactive3wifi/input-boost
+	install -Dm755 "$srcdir"/gtactive3wifi-irqbalance-policy \
+		"$pkgdir"/usr/libexec/gtactive3wifi/irqbalance-policy
 	install -Dm644 "$srcdir"/gtactive3wifi-input-boost.service \
 		"$srcdir"/gtactive3wifi-irqbalance.service \
 		-t "$pkgdir"/usr/lib/systemd/system/
@@ -482,9 +485,10 @@ a3c783e96d1c6f3d4a9b42bbcb385974df5ffb3178a3273a8a34a65d1e8ef7aaa77c9849ab8ec318
 5b29e9866a1b6b431e868a9fae8af6f9b974d04eb5fbd5870c705bd0bee81ef1f4743354b9407fb77c7041e2fc1964a794b5d55d83b31bacbd0fd2f524c80c56  gtactive3wifi-blank-suspend.service
 5a3bdd06d6e79af512c5443622d6fdf8688b6da9b6c3555c78981147b2b68fd970a2d092ed1744446f9eeee1913542adb11b126fc7f1f0f66420f32a5ff75542  gtactive3wifi-active-key.c
 66f4f332e87bb279c9e32c166fa168fde108c4221e663c7b78a1e0f034e9b65c8255c356e5a61a16fa74c018653b58f71a5ad682dc45f87383be5f2f2d7c4c70  gtactive3wifi-active-key.service
-29348d9bafe7d710ecee646aa7c33670deb4dcc42d06fcc1eeafa6d6bc615dddd57159ff8b9a2166ab4b7c291608acff945b2b8cdfd75a4162d5df09aa2c6577  gtactive3wifi-input-boost.c
+50f78b4644d308a2425ed324798feceec8e7bd50443b3705c92edf1dc877ceecb933f5823b9c4a16e4f4ffc4e1b3746c323de404da7beceb4753cb3d6235f1c2  gtactive3wifi-input-boost.c
 d3e7fea623df6e738f10fa428f7c18c6824656d587050db1b22046f797542bdc8d2c5bab52e21523a5d5138a4d32d93f16d15f45a8093e502380f43ba7a7bc5f  gtactive3wifi-input-boost.service
-be86e33b42f85ccab657d2aa311ca63e57bfdbc592f1b3fda11bce7c92a1fa39139c81590ca105d765d953f1a33bc82d9ccfab3da1ac19866fcd68e679e112ad  gtactive3wifi-irqbalance.service
+7df25844ba549733e7ce5de86d8aa913b5066b745239f1b358bc6376926d36920e83d9745edd874846c4096ef93a0f64389de789eedeca478cba878e4ed83730  gtactive3wifi-irqbalance.service
+e4973259d6482a1382dc1228186dbfb4187eed3d922526acbca5ef5b10bdb10daac2a8aeb56fdff76d9e377a7b53dc07770fe2e04796177799f0c2d332c46d72  gtactive3wifi-irqbalance-policy
 dd982aead67e3cc4d6b0b128395d21bcbcd4065f3cfd5c1733123813a48169032a499ee8788c1de3e6d7618718688707868c512cb66d349f33e4b4d8c5237dfe  system-sleep-usb.sh
 5390a4cf096eab6c3d0b09871481490951dd2e7e5a374550580822f5b5e7829ea308c079c81f2ad5e997716cb93595370613a3bf310258b091d063902c1e06dc  system-sleep-wifi.sh
 29121844bd1b8d3f3c32837e3bd3924a33dababd5852ad38a1e7ea2cefc08bf3294172b3cf68243103d3c2565cdee059013fa1734deaaea38771a72ac8792f59  wifi-recover.sh

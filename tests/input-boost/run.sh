@@ -1,8 +1,9 @@
 #!/bin/bash
 # The touch boost daemon (samsung-gtactive3-common gtactive3wifi-input-boost)
 # against fake cpufreq policies and a FIFO standing in for the touchscreen:
-# resting floors at start, the boost on touch events, the cap at
-# scaling_max_freq, back to rest after the tail, the old floors on SIGTERM.
+# resting floors at start, the boost on touch events, held while a contact
+# is down, the cap at scaling_max_freq, back to rest after the tail, the old
+# floors on SIGTERM unless someone else changed them.
 # Needs a C compiler (CC, default cc); no device, no root.
 #
 #   tests/input-boost/run.sh       KEEP=1 keeps the work directory
@@ -48,13 +49,19 @@ expect() {
 	done
 	fail "$2: floors $(floors), expected $1"
 }
-# one touch: ABS_MT_POSITION_X then SYN_REPORT, struct input_event of this ABI
-touch_once() {
+# events as "TYPE CODE VALUE" triples, then SYN_REPORT, in this ABI's
+# struct input_event
+send() {
+	local out=$1
+	shift
 	python3 -I -c '
 import struct, sys
-ev = lambda t, c, v: struct.pack("@llHHi", 0, 0, t, c, v)
-sys.stdout.buffer.write(ev(3, 53, 100) + ev(0, 0, 0))' >"$1"
+a = [int(x) for x in sys.argv[1:]] + [0, 0, 0]
+sys.stdout.buffer.write(b"".join(struct.pack("@llHHi", 0, 0, *a[i:i + 3])
+                                 for i in range(0, len(a), 3)))' "$@" >"$out"
 }
+# a movement: ABS_MT_POSITION_X
+touch_once() { send "$1" 3 53 100; }
 
 "$RUN/input-boost" -t 300 -d "$RUN/touch" \
 	"$P/policy0:455000:832000" "$P/policy4:650000:1066000" \
@@ -79,6 +86,18 @@ ok "every event extends the tail"
 expect "455000 650000" "back to rest after the tail"
 ok "back to the resting floors after the tail"
 
+# a finger put down and held still: BTN_TOUCH 1, then no events for longer
+# than the tail; the boost lasts until BTN_TOUCH 0 plus the tail
+send /dev/fd/3 1 330 1 3 53 100
+expect "832000 1000000" "boost on contact"
+sleep 0.6
+[ "$(floors)" = "832000 1000000" ] || fail "boost ended while the contact was held"
+send /dev/fd/3 1 330 0
+sleep 0.15
+[ "$(floors)" = "832000 1000000" ] || fail "boost ended before the tail after the release"
+expect "455000 650000" "back to rest after the release"
+ok "a held contact keeps the boost until its release and the tail"
+
 # the writer goes away like an unplugged or re-probed device; real event
 # devices come back through the /dev/input watch, which needs no -d
 exec 3>&-
@@ -91,10 +110,13 @@ kill -0 "$pid" || fail "the daemon stopped when the device went away"
 [ "$(floors)" = "455000 650000" ] || fail "floors $(floors) after the device went away"
 ok "a closed device is dropped without stopping the daemon"
 
+# another manager sets policy0's floor; policy4 keeps ours
+echo 300000 >"$P/policy0/scaling_min_freq"
 kill -TERM "$pid"
 wait "$pid" || fail "exit status $? on SIGTERM"
 pid=
-[ "$(floors)" = "208000 598000" ] || fail "floors $(floors) after SIGTERM, expected 208000 598000"
-ok "SIGTERM restores the floors found at start"
+[ "$(floors)" = "300000 598000" ] || fail "floors $(floors) after SIGTERM, expected 300000 598000"
+grep -q "policy0/scaling_min_freq: left at 300000" "$RUN/log" || fail "no 'left at' line for policy0"
+ok "SIGTERM restores our floors and leaves one someone else changed"
 
 echo "all $pass passed"

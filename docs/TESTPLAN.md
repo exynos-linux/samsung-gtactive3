@@ -276,13 +276,111 @@ stays listed and selectable 👆.
 
 ### D12. Responsiveness (branch accelerate-factcheck, samsung-gtactive3-common r51, RESPONSIVENESS)
 
+Read-only pre-test check, 2026-11-19: the connected SM-T570 answered on
+the USB debug console, running image 26102701 (kernel 7.3.0); systemd
+reported `running` with no failed units and CPUs 0-7 online. Neither r51
+service was active, and the policy0/policy4 minimums were 208000/598000
+kHz. `systemd-analyze` reported 1.507 s kernel, 24.204 s initrd and
+7.247 s userspace (firmware 2min 23.369s includes time outside Linux).
+This is a preliminary observation on an older image, not the controlled
+before/after baseline below; no touch, interrupt distribution under load,
+storage or frame tests have yet been performed.
+
+Live touch-boost trial later on 2026-11-19: an ARM64 static build was run
+temporarily from `/tmp` on image 26102701 under a 25 s / 40 s timeout.
+It discovered the Himax touchscreen and Wacom digitizer; at rest the floors
+were 455000/650000 kHz, and during the owner's screen interaction samples
+showed 832000/1066000 kHz. On termination both original floors were restored
+to 208000/598000 kHz. The 500 ms release tail, power-saver profile, perceived
+latency and packaged service remain to be tested. A single interrupt snapshot
+showed display, UFS, Wi-Fi and GPU job counts on CPU0; irqbalance was not run.
+Idle memory pressure was negligible and the checked kernel error log was empty;
+these observations do not identify the cause of perceived slowness.
+
+Later live trial: the same temporary binary was started as a transient
+systemd unit with a 180 s limit, without logging out or changing the image.
+Startup was active and the resting floors were 455000/650000 kHz. The
+initial idle samples showed 0% GPU busy. The owner reported that it felt
+about the same; this is subjective and no timed comparison was captured.
+The unit was then stopped and the original 208000/598000 kHz floors were
+verified restored.
+
+Further live observation, 2026-11-19 with browser and desktop applications
+open: 4 GiB-class device, about 0.92 GiB `MemAvailable`, about 0.85 GiB
+logical swap used on zram (zstd; about 322 MiB zram memory allocated), and
+60-second memory PSI `some` 4.78%, `full` 4.04% at one sample. CPU PSI
+`some` was 12.97% and I/O PSI `some` 2.15% over that same interval. These
+are rolling pressure averages, not a controlled benchmark or proof of the
+cause of UI latency. Earlier, with a lighter workload, memory PSI was
+effectively zero and `MemAvailable` about 2.5 GiB. Measure the same workload
+before and after a change; do not close the owner's applications or alter
+swappiness based on this snapshot alone.
+
 Needs an image of the branch: CI cannot build one until the registry
 problem is fixed (PLAN.md step 1), so a local image (`gtactive3-build-loop`)
 delivered with `scripts/duranium-update`. Nothing here touches the kernel,
 the boot chain or the disk layout: if the image does not boot, boot
 counting returns to the other slot; if a service misbehaves,
-`systemctl disable --now gtactive3wifi-input-boost` (it puts the old floors
-back on stop) or `... gtactive3wifi-irqbalance` undoes it at runtime.
+`systemctl disable --now gtactive3wifi-input-boost` restores the saved floors
+on a normal stop. Stopping irqbalance stops further rebalancing; it does not
+necessarily restore the affinity masks it already changed. Record the masks
+before testing and verify or restore them after stopping it.
+
+**Review and useful follow-up tests (2026-11-19).**
+
+- The live trial observed the expected floor values, not frame times or a
+  speedup. The 0.4 s samples cannot establish a 500 ms release tail, and
+  the samples stayed boosted for the entire sampled interaction window.
+  Capture monotonic timestamps, input events and both floors at 50 ms or
+  better across an isolated press and release, then leave the screen alone
+  long enough to observe the return to rest. Test a stationary held touch:
+  the daemon extends its deadline on events, not on contact state, so a
+  held finger that generates no events can lose the boost.
+- The daemon reads each policy's maximum only when it sets a floor. Change
+  power profiles and max/min limits both while boosted and at rest; check
+  whether another policy manager overwrites its minimum and whether the
+  intended floor returns after a cap is lifted. The FIFO test covers a
+  static cap only, not competing writers or changing caps.
+- The daemon silently ignores failure to open `scaling_min_freq` for writing.
+  Check the journal and actual values when a write is denied or a policy
+  appears late; an active service alone is not proof that boost is working.
+  On normal exit it restores the value saved at startup, which may overwrite
+  a newer minimum set by another policy manager. Check that interaction too.
+- The CPU0 interrupt counts are cumulative, not proof that IRQ handling is
+  a bottleneck. Compare per-CPU deltas and frame/launch latency during the
+  same repeatable workload with balancing off and on, and record power and
+  thermals. Save original IRQ affinity masks and verify restoration; CPU4-7
+  exclusion and the service sandbox have not been verified on the tablet.
+- Compare repeated cold and warm app launches and frame-time distributions
+  on the same image and workload, first with neither service, then touch
+  boost only, then irqbalance only, then both. Record the power profile,
+  temperature, background load, UI state and failures. These comparisons,
+  together with the storage/GPU checks below, can distinguish an observed
+  improvement from an assumed cause.
+
+**Results 2026-11-20 (tablet-lab, image 26102701, programs from /tmp and
+/run, nothing installed; logs/test-runs/2026-11-20-responsiveness).**
+
+- D12.1 held contact: the r52 build (BTN_TOUCH tracking) ran as a
+  transient unit; the 50 ms-class sampler logged one 4.64 s hold during
+  which both floors stayed at 832000/1066000 kHz, and 455000/650000 kHz
+  0.512 s after the release (the 500 ms tail). Stopping the unit restored
+  208000/598000 kHz.
+- D12.2 interrupts, 60 s deltas each, tablet idle on the home screen:
+  irqbalance as r51 shipped it moved only the PCIe Wi-Fi IRQ (to CPU3).
+  irqbalance gives every interrupt without a PCI class (all platform
+  devices here) a package-level mask, 0-3, and the GICv3 driver delivers
+  a multi-CPU mask to its lowest CPU, so they stayed on CPU0;
+  `--deepestcache=1` changed nothing. With r52's policy script
+  (`balance_level=core`): display controller and spi-s3c64xx on CPU1,
+  ufshcd on CPU2, Wi-Fi and dwc3 on CPU3, nothing on CPU4-7; the
+  GPIO-chained interrupts (bcm4775-shub, keys) cannot move ("Operation not
+  permitted", irqbalance leaves them unmanaged). The same with the r52
+  unit's sandbox (ProtectSystem=strict, PrivateNetwork, ...): active, no
+  errors. The USB link stayed up throughout; the saved masks were written
+  back and compared equal afterwards.
+- Still open: touch and the UI with the interrupts moved (👆), power-saver,
+  the owner's judgement, D12.3 numbers, and both services from an image.
 
 **D12.1 Touch boost.** No hands: `systemctl is-active
 gtactive3wifi-input-boost` = active; its journal has "watching
