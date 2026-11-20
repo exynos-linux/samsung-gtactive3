@@ -1,0 +1,39 @@
+#!/bin/bash
+# Run a command on the tablet over the USB debug ssh (key-only, the dev
+# images' default since duranium-usb-debug r7). Without a command: a shell.
+#
+#   scripts/tab-ssh [COMMAND...]
+#   scripts/tab-ssh --pair     pair this computer once: the tablet asks
+#                              "Allow USB debugging?" with the fingerprint
+#                              printed here; tap Allow
+#   scripts/tab-ssh --where    print the ssh target (for scp/rsync: -o ...)
+#
+# The key is ~/.ssh/id_ed25519_gta3_usb (made on first use), the tablet's
+# host key goes to ~/.ssh/known_hosts_gta3. One connection is shared by
+# all calls for 60 s (ControlMaster), so scripted use does not log in each
+# time.
+set -euo pipefail
+LL=fe80::57:aff:fe00:1
+KEY=${GTA3_SSH_KEY:-$HOME/.ssh/id_ed25519_gta3_usb}
+ifc=$(for d in /sys/class/net/*; do [ "$(basename "$(readlink -f "$d/device/driver" 2>/dev/null)")" = cdc_ncm ] && basename "$d"; done | head -1 || true)
+[ -n "$ifc" ] || { echo "tablet USB network not present" >&2; exit 1; }
+[ -f "$KEY" ] || ssh-keygen -q -t ed25519 -N "" -C "gta3-usb-debug host key" -f "$KEY"
+ctl=${XDG_RUNTIME_DIR:-/tmp}/gta3-ssh-%C
+opts=(-i "$KEY" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10
+	-o UserKnownHostsFile="$HOME/.ssh/known_hosts_gta3" -o StrictHostKeyChecking=accept-new
+	-o ControlMaster=auto -o ControlPath="$ctl" -o ControlPersist=60)
+case ${1:-} in
+--pair)
+	echo "this computer's key: $(ssh-keygen -lf "$KEY.pub" | cut -d' ' -f2)"
+	echo "tap Allow on the tablet if it shows the same key (60 s)"
+	python3 -I - "$LL%$ifc" "$KEY.pub" <<'PY'
+import socket, sys
+s = socket.create_connection((sys.argv[1], 2324), timeout=10)
+s.sendall(open(sys.argv[2], "rb").read().splitlines()[0] + b"\n")
+s.settimeout(80)
+print(s.makefile().readline().strip() or "no answer")
+PY
+	;;
+--where) echo "root@$LL%$ifc ${opts[*]}" ;;
+*) exec ssh "${opts[@]}" "root@$LL%$ifc" "$@" ;;
+esac
