@@ -41,6 +41,22 @@ yourself, autonomously, overnight. Keep going until the mission is met.
 - Waits for the owner: D14.8 (10 min suspended with the screen off, to
   measure screen-off drain); a wall charger for D14.7's pause at 85 %.
 
+## State 2026-11-20 14:35 AEDT (session "tablet-lab"): CI images unblocked
+
+- The dev-image failure ("systemd-262.2-r0: failed to commit
+  usr/sbin/init") is upstream's: apk-tools 3.0.10 in mkosi's tools tree
+  (edge, 2026-11-19). Reproduced with clean upstream duranium-build
+  (qemu-amd64 phosh); with Alpine's static apk 3.0.9 overlaid as a mkosi
+  sandbox tree the same full build passes (6.4 GB image, 336 s; logs in
+  logs/test-runs/2026-11-20-apk-pin). duranium-build 0047 does that for
+  our images (owner's OK); `APK_PIN=` turns it off once apk is fixed.
+  Images run 44667263988 is the first with it.
+- Battery care (kernel r27, common r54) landed on main from its own
+  session; the 13:07 reset was a panic from a charger-only module swap
+  (COORDINATION.md has the rule and the unload order).
+- Three commits from 13:20-14:00 had not reached origin (pushed from the
+  wrong branch); all are on main now (4428b2a6, then c7fdbc3f).
+
 ## State 2026-11-20 13:20 AEDT (session "tablet-lab", coordinator): acceleration merged, USB debug secured, popup fixed
 
 - tablet-lab coordinates the SM-T570 and this repo now (docs/COORDINATION.md

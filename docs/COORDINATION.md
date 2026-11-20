@@ -27,10 +27,12 @@ Message tablet-lab before anything in section 1 beyond read-only use.
   `duranium-usb-debug off`, rmmod/insmod of a loaded driver, register pokes,
   installs, long tests. Read-only use needs neither.
 - **Reloading a PMIC, charger or fuel-gauge driver counts as a reboot**
-  (2026-11-20 13:07: a max77705_charger/max17042_battery reload reset the
-  tablet; `oops=panic panic=10` turn any module oops into a reset): batch
-  such tests, hold the device lock, and tell tablet-lab and the owner
-  first; the owner types the passphrase after every reset.
+  (2026-11-20 13:07:45: a kernel panic, RST_STAT 0x20000000, after
+  max77705_charger was swapped alone and the gauge's supplied_from pointed
+  into the unloaded module; `oops=panic panic=10` turn any module oops into
+  a reset): batch such tests, hold the device lock, and tell tablet-lab
+  and the owner first; the owner types the passphrase after every reset.
+  Unload max17042_battery before max77705_charger, load it after.
 - **Every test comes back without a human:** know the return path first
   (boot counting, a timer that undoes the change, Download mode). Turning
   USB debug off on a running tablet needs a timer that turns it on again
