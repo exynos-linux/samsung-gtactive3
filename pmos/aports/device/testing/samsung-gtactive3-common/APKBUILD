@@ -11,7 +11,7 @@ maintainer="dixonSolutions <203963471+dixonSolutions@users.noreply.github.com>"
 pkgname=samsung-gtactive3-common
 pkgdesc="Samsung Galaxy Tab Active3: support shared by every variant"
 pkgver=2
-pkgrel=53
+pkgrel=54
 url="https://github.com/exynos-linux/samsung-gtactive3"
 license="MIT"
 arch="aarch64"
@@ -96,6 +96,7 @@ source="
 	usb-resume-check.sh
 	gtactive3wifi-usb-resume.service
 	60-gtactive3wifi-pm.rules
+	61-gtactive3wifi-battery-care.rules
 	modprobe-gtactive3wifi-camera.conf
 	libcamera-softisp.yaml
 	sysupdate-retry.conf
@@ -108,6 +109,7 @@ source="
 	gdm-panfrost.conf
 	panfrost-profile.sh
 	panfrost-profile.tmpfiles
+	battery-care.tmpfiles
 	nm-wifi-powersave.conf
 	80-gtactive3wifi-wlan-mac.rules
 	wlan-efs-mac
@@ -229,6 +231,7 @@ package() {
 	install -Dm755 "$srcdir"/usb-resume-check.sh \
 		"$pkgdir"/usr/libexec/gtactive3wifi/usb-resume-check
 	install -Dm644 "$srcdir"/60-gtactive3wifi-pm.rules \
+		"$srcdir"/61-gtactive3wifi-battery-care.rules \
 		-t "$pkgdir"/usr/lib/udev/rules.d/
 	# another UI (phosh, gnome, ...) through the A/B update
 	install -Dm755 "$srcdir"/switch-ui.sh \
@@ -279,6 +282,9 @@ package() {
 		"$pkgdir"/etc/tuned/profiles/throughput-performance/tuned.conf
 	install -Dm644 "$srcdir"/gtactive3wifi-reboot.tmpfiles \
 		"$pkgdir"/usr/lib/tmpfiles.d/gtactive3wifi-reboot.conf
+	# battery care (charge limit 80-85 %) on by default, in upower's state
+	install -Dm644 "$srcdir"/battery-care.tmpfiles \
+		"$pkgdir"/usr/lib/tmpfiles.d/gtactive3wifi-battery-care.conf
 	install -Dm644 "$srcdir"/firmware-path.tmpfiles \
 		"$pkgdir"/usr/lib/tmpfiles.d/00-device-samsung-gtactive3wifi-firmware.conf
 	# the owner's firmware, left on the ESP by the installer (setup.sh)
@@ -496,6 +502,7 @@ dd982aead67e3cc4d6b0b128395d21bcbcd4065f3cfd5c1733123813a48169032a499ee8788c1de3
 95fa85a3da27ed79aaefbd26b2587ea167f9ee0e37af80650049be237084340330480b95278738b599e6dcfda4b336445122a10f391c818334e57ef77d9a12a6  usb-resume-check.sh
 9d5cf13e6260f3c30417156e013c54dc3806ca0ab732d07396e62fd2438ed1ba15bfc4f2f9275814cd17e82407b281df2b6c51f1176f525590aaaca6366df34d  gtactive3wifi-usb-resume.service
 26af87d4a912495b3f46a120eceab3ebfe58337e7006fae0a9d2057e98ac69507ddb0c44550abc7e3482769e74db2844c013fc12c62916021776fc3cf3bd1e09  60-gtactive3wifi-pm.rules
+fc83f6ebbc3488746c6a43bdbc166f660b5a4ce47529643707dd459a66a426bac5e46f0cd9038953edd78b2b8054cecd19c346d691cf319cce81f8fa60bfd8da  61-gtactive3wifi-battery-care.rules
 80f67a6e205e9998eb10797c0fa0bbcca2863559f87551104b5d1d5fc74d5251a7ec8ab6492fe24a8cc35364a9e9e34e779425b280864d4a60c764f78c0108cb  modprobe-gtactive3wifi-camera.conf
 e69977e58e3982a3b827e6fa95286e52b866bea691180ac360023a6e23b1ffc3fb480dba6949d95ab20e1852d7e33d784afdb7a71e19c1feecbc73e4c0d93eb0  libcamera-softisp.yaml
 ee138d47dfd10ccd3864040abbf7838461178194f605430c9a3f1fa5288efb40432e6dda03df1c98c1ceae013d98d706b3d9919a5593b2c30b39a4fb4d872e6e  sysupdate-retry.conf
@@ -508,6 +515,7 @@ fa48039f5feea839f0bcfa4101a2a0ea7b988822ebde3cfb4ac632bd4e2962c5d716e15f5091f9f2
 28cac460860b0987c4f05bbbf64081a07bbfb4bf6e3a9c9f7eef045442e41491a42466eea29fa3717a76f87d02c55fc24448d24405a00466a37da53d1b2ebf4b  gdm-panfrost.conf
 611a89eac00742d374401fea72c9a38659377b282fc304215531be36bb6b11083b427185d24a70ab5fe4b05ee39c721d6ec9dc86c056c0219e6a41db837fb90d  panfrost-profile.sh
 d65d18f451bbd9fda18c6d0c76fdaa9fb0c3a8d5aac0150beae3e327262ee26b7d3778c6591ba28a7eda3402c2ba9b00ca3238c9820d8a526749e149c54ac031  panfrost-profile.tmpfiles
+4aab843e115626a410700e6643bacbe4c6331ec669c6a9be4a1b19e72ed3eff5f4e3458d4ecdc803c6dc54890a0c2e92743bf7a57b78c95191c6809c1a857989  battery-care.tmpfiles
 8f78c7ca8f739750579ede9b4ba16e6b1e51c08296ced929fc7db9176f0bb487bad9a096460d65ec05bfb6530dc83eb2c1e2a17155b1bae96ea4778b5b98acad  nm-wifi-powersave.conf
 cbd57e963b49b08d97b12818d44f19bfc736a538bb04299a8d4d58f8609e2e8773b8af87ecfda0370ff4479b57fe5ffc4637fe5c5ba8d2b9b6546915cbe090d6  80-gtactive3wifi-wlan-mac.rules
 4d2c6c11f751b1ac6d028b01f2eece848330cde5b20d971f8cd19bb3cec94b126edc7f3caf82a964297cd940461690b1e50ef8f23dae33b5919d84655de28313  wlan-efs-mac
@@ -517,7 +525,7 @@ c15bf919861bc0d0db2475c751a7ccb9b2773a10e328465d0eb3a5b89125d8e9c03954698b9c9bdf
 625508baa42fad23519a17bf5044ce7fe4652dd02887e8fe649d79b273893fd3f619a3d45e596db2515c64dc5196af585c7541f7cdc708ee46f228dca83681a8  80-device-samsung-gtactive3wifi.preset
 12ecb8f1960365f7ab82897905f0426dbdbfb7d00a6e1a1c0bbbe3ca3bfbe8fe1c463667124c8244975f63f5c8cedac2ace01f35ed590296e2e5db0065f8374d  80-device-samsung-gtactive3wifi.user-preset
 75283b6d91b9ffa5ccbcf05fd5d4ac522462046ade9a8d411ac209a18fbb2cda9ba4509bdc1d0ad2c7b77d8b7c6c5ebe4d2618ad2625266f8ea4ee1ba7014b80  oomd-avoid.conf
-c049eaa52427f76ad7ada60091e9724a97b1f98cf0c503dc20cb2836b71d5cccfd1cebeb3163374a461952be9efa5a6af4e4f1d01b3acc4f069abfe49d3c94bb  powersave.conf
+908a74c65da5fc1f6333c57c4a66688e2c57e1b5749b44a9e43fd2c8a5d4abe338646cf322d3b7431469842d98e0ef3cfebd7e869d98b06bf90de62e5496f54d  powersave.conf
 50533c0384c6270ade75b1a97c7c4adc04cae53e19118804b82518891326aeaf56c61f7a65efec9b158ea273d34642bceecd5bef425538f3a03716a5d9619b21  throughput-performance.conf
 496eafb8c2e21be8923182ee932bac40100e1940805f4e3dcc37a0b1dbfc4c8e5007f2fee9f0f815ed77ce88add0bfc427909e3a31bc01b9887f75d76e1ec244  extension.js
 ddad1d319f586fa4c5b6f91a00d6e99591c5492923d44f9161b71aa09a97b788261e5bdd3657e1eba4d7f501ad272ef82ef918f6c5bcf0077020e8d24e7e143c  metadata.json

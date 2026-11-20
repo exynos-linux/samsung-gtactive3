@@ -143,3 +143,83 @@ win and the prerequisite for SICD.
 Exact drop-in files for items 1-4 are in the CPU/battery agent's hand-off to
 the lead (device package, UI-neutral). C2 (item 7) is on kernel branch
 `drv/c2fix`; see docs/STATUS.md "CPU DVFS and idle".
+
+## Battery care (2026-11-20, kernel r27 + samsung-gtactive3-common r54)
+
+Android's "Protect battery" (One UI) stops charging at 85 %. Here the same
+thing goes through the standard Linux interfaces, so GNOME Settings ("Preserve
+battery health"), upower and Noru all drive it:
+
+- **Kernel** (`max77705_charger`, src/linux branch `drv/battcare`, in
+  the aport as r27): the charger adds `charge_control_start_threshold`,
+  `charge_control_end_threshold` and `charge_behaviour` to the battery it
+  supplies (`/sys/class/power_supply/max170xx_battery/`), as a power_supply
+  extension. The charger IC has no state of charge, so the driver reads the
+  gauge's capacity with its temperature poll (10 s, or at once after a
+  write). At the end threshold it clears CHG_EN and leaves the buck on: the
+  tablet runs from the charger and the battery rests. Charging resumes at
+  the start threshold (at most end - 1). 100 = no limit (the default).
+  `charge_behaviour`: `auto`, `inhibit-charge`, `force-discharge` (buck
+  off: the tablet runs from the battery with the cable in, which is how
+  drain is measured over the USB console; refused while the charger
+  supplies VBUS and below 20 %, ends by itself below 20 % or when the
+  capacity is unknown, buck back on when the driver unloads). The temperature
+  steps (docs/STATUS.md "Battery temperature and charging limits") apply on
+  top.
+- **Device package**: `61-gtactive3wifi-battery-care.rules` sets
+  `CHARGE_LIMIT=80,85` on the gauge. upower needs that property to offer
+  the limit, and its own catch-all default (`60-upower-battery.rules` with
+  its hwdb: 75,80) sorts before ours. `gtactive3wifi-battery-care.conf`
+  (tmpfiles) creates `/var/lib/upower/charging-threshold-status` = `1` if
+  it is missing: battery care is **on** by default, and the owner's choice in
+  Settings is kept across boots and updates. upower applies it whenever the
+  battery appears.
+- Stock source: Samsung's 4.9 kernel for the S9 (`drivers/battery_v2`) has
+  no full-capacity limit, so the 85 % comes from One UI's setting, not from
+  driver code we have read. Our hysteresis (80-85) is our own choice.
+
+Verified live on 26102701 with the r27 module (TESTPLAN D14.1-D14.5,
+2026-11-20, logs/test-runs/2026-11-20-battery-care): the controls appear
+100 ms after the gauge loads; at 88 %: end 88 → "Not charging", end 89 /
+start 83 → still paused, start 88 → "Charging"; a gauge reload alone →
+controls back in 100 ms; with the 61- rule upower reads 80/85 (not its
+75/80), `EnableChargeThreshold(true)` writes 80/85 and charging pauses,
+`false` writes 0/100 and charging resumes. Swapping modules live: unload the gauge first. Unloading
+the charger alone leaves the gauge's `supplied_from` pointing into the
+unloaded module, and the next battery event dereferences it (the probable
+cause of the 2026-11-20 13:07 panic on the tablet).
+
+## Power saver (2026-11-20, samsung-gtactive3-common r54)
+
+tuned's `powersave` (power-profiles "power-saver" through tuned-ppd) with
+this device's caps: A55 at most 1456 MHz, M3 at most 1261 MHz (70 %, as
+Samsung's saver), GPU at most 455 MHz, schedutil changes at most every 5 ms
+(stock Android's rate limit, instead of 150 us). schedutil and EAS stay, and
+so do the touch boost floors (832/1066 MHz, below the caps). The r52 profile
+(A55 cap only) saved nothing: in these runs the A55s sat at about 455 MHz
+and the work ran on the M3s.
+
+Measured on 26102701 (TESTPLAN D14.6, logs/test-runs/2026-11-20-battery-care,
+force-discharge so the battery current is the whole draw, brightness 65 of
+3977, Wi-Fi associated, no touches; "load" = three workers each doing a
+fixed amount of work every 100 ms):
+
+| Run | Condition | balanced | power saver | Change |
+|---|---|---|---|---|
+| measure-4 (quiet tablet, interleaved ×2) | screen on, idle | 687-693 mA | 686-689 mA | none |
+| | light load (M3 ~1066 MHz) | 868-886 mA | 880-885 mA | none; 41 ms of work per period in both |
+| measure-2 (one core busy throughout, interleaved ×2) | screen on + background | 908-945 mA | 793-815 mA | -13 % |
+| | + load | 1233-1253 mA | 998-1007 mA | -19 %; 38 ms of work per period instead of 27, no period missed |
+
+So the saver costs nothing when the tablet is quiet and saves about a fifth
+under sustained load, where the M3 would otherwise run at 1794 MHz. Drain
+per hour (4349 mAh full): quiet screen-on 16 %/h (6.3 h), busy 29 %/h
+balanced vs 23 %/h saver. The floor of ~690 mA with the screen on is out of
+reach for a profile. It comes from the display path, the memory bus fixed at
+1794 MHz (item 8), no C2/SICD (item 7) and the panel staying lit. Those
+kernel items remain the way to a day's battery.
+
+Ruled out on the way: an "idle M3 stuck at a high frequency" effect (the
+cluster's frequency changes 2-3 times a second while quiet;
+sticky-m3-ab.txt), and an effect of re-applying tuned's profile
+(tuned-reapply.txt).

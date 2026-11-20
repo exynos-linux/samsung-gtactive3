@@ -24,7 +24,9 @@ touching the tablet (reset → Download mode → automatic reflash, or watchdog 
    file or directory" (and udevadm). Nura's postmarketos-base 79 enacts
    bin-merge (2026-11-15) and installs merge-usr, but upstream's own
    scheduled build of 2026-11-17 passed, so something in our build
-   differs. Find it, then TESTPLAN V1, V4 and D12/D13 with the dev image.
+   differs. Find it, then TESTPLAN V1, V4 and D12/D13 with the dev image,
+   and D14.7 (battery care on after the first boot: kernel r27 +
+   samsung-gtactive3-common r54, merged 2026-11-20).
 2. Ship USB debug security and responsiveness in one image (common r53,
    duranium-usb-debug r7, both on main): `scripts/duranium-update` to the
    SM-T570 over the USB ssh, then D13's open items (Turn off button, off
@@ -134,3 +136,21 @@ what is verified today.
       signal from the shell (none today)
 - [ ] Rotation: the phoc MR upstream (Auto-rotate row)
 - [ ] MIF devfreq: battery, not speed (docs/BATTERY.md item 8)
+
+## Layer 8: battery care and power saver (2026-11-20, docs/BATTERY.md)
+
+- [x] Charge limit in the kernel: `charge_control_{start,end}_threshold`
+      and `charge_behaviour` on the battery (max77705_charger, kernel r27),
+      tested live with the module (TESTPLAN D14.1-D14.4)
+- [x] Battery care on by default at 80-85 % through upower (CHARGE_LIMIT
+      rule + upower state default, samsung-gtactive3-common r54); the rule
+      and the upower path tested live (D14.4, D14.5)
+- [x] Power saver: tuned `powersave` with CPU/GPU caps and a 5 ms schedutil
+      rate limit, touch boost kept, measured (D14.6): equal to balanced
+      when quiet, -13 to -19 % under sustained load
+- [ ] In an image: r27 + r54 booted, D14.7 (battery care on after the
+      first boot, the Settings switch, Noru's toggle later)
+- [ ] Screen-off drain with suspend (D14.8) and the remaining big items:
+      panel/DSIM power-off, MIF devfreq, C2/SICD (roadmap above)
+- [ ] Cairn OS: the same design in cairn/core and Noru's quick settings
+      (handed to the images and noru sessions, 2026-11-20)

@@ -5,6 +5,42 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-20 14:30 AEDT (session "battery-care"): charge limit and power saver
+
+- Kernel r27 (src/linux `drv/battcare`, 29dc0ef8b on 12b04826f; `gtactive3`
+  fast-forwarded to it): max77705_charger adds `charge_control_{start,end}_threshold`
+  and `charge_behaviour` (auto, inhibit-charge, force-discharge) to
+  max170xx_battery as a power_supply extension. Live-tested with the
+  module on the SM-T570 (26102701): TESTPLAN D14.1-D14.5 pass, docs/BATTERY.md
+  "Battery care". The tablet still runs that module from /tmp (no limit,
+  auto). It is harmless, and a reboot brings back the stock one.
+- samsung-gtactive3-common r54 (on top of tablet-lab's r53):
+  battery care on by default at 80-85 % (`61-gtactive3wifi-battery-care.rules`
+  sets CHARGE_LIMIT after upower's catch-all 75,80; the tmpfiles default
+  writes upower's state file once). The tuned power saver adds an M3 cap of
+  1261 MHz, a GPU cap of 455 MHz and a 5 ms schedutil rate limit to the A55
+  cap. Measured (D14.6): no change on a quiet tablet (~690 mA screen on at
+  brightness 65), -13 % / -19 % under a sustained one-core load.
+- Incident: 2026-11-20 13:07 kernel panic on the tablet after this session
+  unloaded the charger module alone. The gauge's supplied_from kept a
+  pointer into it. Rule (TESTPLAN D14): unload the gauge first. The panic
+  dump was lost: systemd-pstore archives /sys/fs/pstore while still in the
+  initrd, whose /var is a tmpfs (follow-up).
+- Builder: the local `gta3-pkgbuilder` image had been removed. Modules are
+  now built with `localhost/gta3-kmodbuilder` (Nura edge, Alpine GCC 15.2.0,
+  same as the package): out of tree, `O=build/battcare/out
+  KERNELRELEASE=7.3.0 M=drivers/power/supply`.
+- Cairn OS: the design (core: upower + tuned + tuned-ppd + the state default;
+  device apks: the CHARGE_LIMIT rule and tuned overrides; Noru: battery care
+  and power saver toggles) went to the images and noru sessions, note
+  `battery-power-design.md` in the session notes.
+- In flight: none (merged to main). Worktrees build/wt/battery-care (sparse)
+  and build/wt/linux-battcare can go.
+- Next three steps: as PLAN.md "Next three steps (2026-11-20)" (step 1
+  now includes D14.7).
+- Waits for the owner: D14.8 (10 min suspended with the screen off, to
+  measure screen-off drain); a wall charger for D14.7's pause at 85 %.
+
 ## State 2026-11-20 13:20 AEDT (session "tablet-lab", coordinator): acceleration merged, USB debug secured, popup fixed
 
 - tablet-lab coordinates the SM-T570 and this repo now (docs/COORDINATION.md

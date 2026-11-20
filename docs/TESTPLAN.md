@@ -455,6 +455,26 @@ unreachable and GNOME can say "Connection failed". A profile for the
 tablet's host MAC 02:57:0a:00:00:02 with `ipv6.method link-local`,
 `ipv4.may-fail yes` would avoid it; not set up (needs the owner's OK).
 
+### D14. Battery care and power saver (kernel r27, samsung-gtactive3-common r54, BATTERY)
+
+docs/BATTERY.md "Battery care" and "Power saver". Measure drain with
+`charge_behaviour` = `force-discharge` (the buck off, so the battery current
+is the whole tablet's draw even with the USB cable in), always under a
+systemd timer that writes `auto` back. Live module swaps: unload
+`max17042_battery` first, then the charger. Never unload the charger alone
+(see BATTERY.md). Logs: logs/test-runs/2026-11-20-battery-care (local, gitignored).
+
+| # | Test | Pass |
+|---|---|---|
+| D14.1 | load the r27 charger module, then the gauge | `charge_control_start_threshold`, `charge_control_end_threshold`, `charge_behaviour` on max170xx_battery within 100 ms of the gauge (PASS 2026-11-20, 26102701, module from /tmp) |
+| D14.2 | `echo 85 > ..._start; echo 90 > ..._end` with the battery above 90 %, then end back to 100 | charger "Not charging" within 1 s, "Charging" again (PASS 2026-11-20); hysteresis at capacity C: end = C, start = C-5 → paused; end = C+1 → still paused; start = C → charging (PASS 2026-11-20 at 88 %, care-test4.txt) |
+| D14.3 | `inhibit-charge`, `auto`, `force-discharge` (timer back to auto), bad values | Not charging / Charging / battery current = whole draw (-120 → -650 mA on laptop USB), "Invalid argument" for 0, 101, bogus (PASS 2026-11-20) |
+| D14.4 | gauge-only reload (`rmmod max17042_battery; modprobe max17042_battery`) | "battery gone, charge limit off", controls back in 100 ms (PASS 2026-11-20) |
+| D14.5 | upower: `61-gtactive3wifi-battery-care.rules` in place, `systemctl restart upower`, `EnableChargeThreshold` true/false over busctl | ChargeThresholdSupported, start/end 80/85 (not upower's default 75/80), state file 1/0, sysfs 80/85 then 0/100 (PASS 2026-11-20 with the rule in /run/udev/rules.d, care-test4.txt) |
+| D14.6 | power saver vs balanced: `/tmp/measure2.py balanced gta3-ps-new balanced gta3-ps-new powersave balanced` (60 s screen-on idle + 60 s of three workers doing fixed work every 100 ms, per profile) | the saver never above balanced, lower under sustained load, no missed periods (PASS 2026-11-20: quiet: equal; one core busy: -13 % idle, -19 % load; work per period 38 ms vs 27 ms, 0 missed; measure-2.txt, measure-4.txt, BATTERY.md "Power saver") |
+| D14.7 | in an image with r27 + r54, after the first boot | GNOME Settings/upower: battery care on, 80-85 %; charging pauses at 85 % on a wall charger; switching it off resumes charging; the choice survives a reboot and an A/B update |
+| D14.8 | screen-off drain: `echo +600 > /sys/class/rtc/rtc0/wakealarm; systemctl suspend` with force-discharge, `charge_now` before and after | mA over the 10 min suspended (needs the owner's OK: the screen goes off) |
+
 ## E. Test helpers
 
 - `GTA3_PASSWORD=<ClaudeKeys placeholder> scripts/tab-unlock` answers the
