@@ -9,12 +9,14 @@
 # (091acc188, kernel r25), linearised (its merge commits replayed in order),
 # plus patches/linux/0153 (the board DT split into a common file and one
 # file per Galaxy Tab Active3 variant) and 0154 (the Shannon CP remoteproc
-# sketch, not enabled); the patched tree is _commit.
+# sketch, not enabled) and the MAX77705 charge limit (drv/battcare: charge
+# control thresholds and charge_behaviour on the battery, kernel r27); the
+# patched tree is _commit.
 maintainer="dixonSolutions <203963471+dixonSolutions@users.noreply.github.com>"
 pkgname=linux-postmarketos-exynos9810
 pkgver=7.3.0_git20261021
-pkgrel=26
-_commit="12b04826f307d1635aa6e1eff7ca55fb62ab4f97"
+pkgrel=27
+_commit="29dc0ef8bb1ae35035ee03a17dc72b4eea656612"
 # torvalds/linux commit that gtactive3.patch applies to; base + patch
 # is the tree of _commit in the gtactive3-mainline kernel (scripts/pmos-export)
 _base="f47d223627f80cb7a1eb14c585fe6cb35de5e984"
@@ -123,6 +125,6 @@ _dtb() {
 
 sha512sums="
 4cc471f94509680acb6f55e5c14babab5bf2a60edf014bcc48b55da8cb96dbd262645a82c81e9e2108d01d2eda59dae1844c797475a9691c7e43a43d53ff0917  linux-f47d223627f80cb7a1eb14c585fe6cb35de5e984.tar.gz
-9e6943b460f69bc0e2a2370b7bb4f5290969e8a1e38c11cdc136bdbd779521777d1523bfb28c359c01ad66703a74e7b6f4a5a938b18067f77f6f8d3f45a42faa  gtactive3.patch
+66df06c73105cfe1a7c95800e1b6a35cca7049ce165c0be3b37d84a839bcb1245bb9af6b47cc0ece10435882b5de7f9cfc4c4e98d855f588ed3f4c04b7148d2e  gtactive3.patch
 0402088aaf882452446809b2b278b8b8282b7a09a638267ac77e652e41a8b4af36efc6863ce0f6ffdddbc1d93b78c820a25ca849d2aefa1e9f8f5dbb39ae65a2  config-postmarketos-exynos9810.aarch64
 "

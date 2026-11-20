@@ -40,6 +40,11 @@ persistent=sda17, misc=sda18, metadata=sda24, cache=sda28. Also cpefs=sdd1.
 
 Input: sec_touchscreen (spi21.0), sec_e-pen (6-0056), gpio_keys, hall, headset jack.
 Power supplies: max77705-charger, max77705-fuelgauge, pogo, wireless, otg.
+MAX77705 charger CNFG_00 (0x69, reg 0xB7 bits 0-3): with BUCK (bit 2) cleared and
+the cable in, the tablet runs from the battery while VBUS and USB data stay up;
+CHG_EN (CNFG_09 = 0xC0, bit 7; addresses from include/linux/mfd/max77705-private.h) cleared with BUCK set runs it from the charger with the
+battery resting. Tested live 2026-11-20 (max77705_charger r27 force-discharge
+and charge limit, logs/test-runs/2026-11-20-battery-care).
 
 ## Blocked by SELinux (get from stock firmware or root)
 /proc/device-tree, of_node/compatible, dmesg, /proc/cmdline, /vendor/firmware,
