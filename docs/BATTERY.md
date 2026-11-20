@@ -156,7 +156,9 @@ battery health"), upower and Noru all drive it:
   supplies (`/sys/class/power_supply/max170xx_battery/`), as a power_supply
   extension. The charger IC has no state of charge, so the driver reads the
   gauge's capacity with its temperature poll (10 s, or at once after a
-  write). At the end threshold it clears CHG_EN and leaves the buck on: the
+  write). At the end threshold it clears the CHG bit of the CNFG_00 mode
+  (r29; r27 and r28 cleared CNFG_09 bit 7, which does not stop charging, see
+  below) and leaves the buck on: the
   tablet runs from the charger and the battery rests. Charging resumes at
   the start threshold (at most end - 1). 100 = no limit (the default).
   `charge_behaviour`: `auto`, `inhibit-charge`, `force-discharge` (buck
@@ -192,7 +194,26 @@ controls back in 100 ms; with the 61- rule upower reads 80/85 (not its
 `false` writes 0/100 and charging resumes. Swapping modules live: unload the gauge first. Unloading
 the charger alone leaves the gauge's `supplied_from` pointing into the
 unloaded module, and the next battery event dereferences it (the probable
-cause of the 2026-11-20 13:07 panic on the tablet).
+cause of the 2026-11-20 13:07 panic on the tablet). Unloading the charger
+module that came with an image reset the tablet even with the gauge out
+(26112001, 17:47 and 17:56): do not swap it live, test a fix in an image.
+
+**The r27 limit did not stop charging** (found 2026-11-20 by D14.8). r27
+cleared `MAX77705_CHG_EN` (CNFG_09 bit 7); the status then read "Not
+charging", but the battery took +280-373 mA in CV at 97-99 %. Samsung's
+`max77705_set_charger_state()` (drivers/battery_v2/max77705_charger.c in
+the S9 GPL kernel) switches the CHG bit of the CNFG_00 mode and sets CNFG_09
+bit 7 only once at init. Clearing CNFG_00 CHG by hand (0x05 → 0x04) took the
+battery current from +122 mA to -6..+7 mA and DETAILS_01 to "charger off"
+(TESTPLAN D14.9). r29 gates on that bit and reads the status from it.
+
+**Screen-off drain** (TESTPLAN D14.8, 2026-11-20, 26112001): 1200 s of
+s2idle with the screen off, woken by the RTC alarm, measured with
+force-discharge: ~171 mA from `charge_now` (57 mAh; `charge_counter` says
+~219 mA), against ~650 mA awake with the screen on. At resume the charger's
+10 s poll ran before I2C was back ("-108", capacity -1), which ended
+force-discharge and the care hold; r29 makes the poll's workqueue
+freezable.
 
 ## Power saver (2026-11-20, samsung-gtactive3-common r54)
 

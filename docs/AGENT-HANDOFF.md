@@ -5,6 +5,25 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-20 18:10 AEDT (session "battery care"): D14.8 drain, battery care bug, kernel r29
+
+- D14.8 ✔: ~171 mA in s2idle with the screen off (20 min, RTC wake, USB back;
+  ~650 mA awake with the screen on). TESTPLAN D14.8, BATTERY.md.
+- Bug: the r27/r28 charge limit only changed the status. CNFG_09 bit 7 does not
+  stop charging; the CNFG_00 CHG bit does (checked by hand, D14.9). The fix is in
+  src/linux 2bbe2395e (gtactive3 and drv/battcare, not pushed). It also makes
+  the charger poll freezable, so it cannot hit the suspended I2C bus at
+  resume (-108). Kernel aport **r29** on main (local commit, on top of
+  tablet-lab's r28 6987697e). It is not built or booted yet.
+- Unloading the charger module that came with the image resets the tablet
+  (17:47 and 17:56; it came back by itself on 26112001). Test charger fixes
+  in an image, not by live swap.
+- Next: (1) build r29 and put it in an A/B image (tablet-lab's 26112002~test1
+  is r28); (2) in it, run D14.9 (hold at 80/85 → current ≤ ~0) and the D14.7
+  pause at 85 % while charging; (3) hand the r29 apks to the images session
+  for Cairn (~/cairn-handoff/gtactive3-battery-care/apks/).
+- Waits for the owner: nothing physical.
+
 ## State 2026-11-20 16:50 AEDT (session "tablet-lab"): 26112001 checked, chooser facts, osk sysext blocked
 
 - Image 26112001 (r53/r52/r54, kernel r27) booted and blessed on the SM-T570.

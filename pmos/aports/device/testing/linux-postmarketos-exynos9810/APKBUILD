@@ -12,12 +12,13 @@
 # sketch, not enabled) and the MAX77705 charge limit (drv/battcare: charge
 # control thresholds and charge_behaviour on the battery, kernel r27); the
 # patched tree is _commit. r28: CONFIG_FS_VERITY=y (ext4 fs-verity, for
-# composefs: overlayfs verity=require over the image files).
+# composefs: overlayfs verity=require over the image files). r29: battery
+# care stops the current (the CNFG_00 CHG bit, not CNFG_09 bit 7).
 maintainer="dixonSolutions <203963471+dixonSolutions@users.noreply.github.com>"
 pkgname=linux-postmarketos-exynos9810
 pkgver=7.3.0_git20261021
-pkgrel=28
-_commit="29dc0ef8bb1ae35035ee03a17dc72b4eea656612"
+pkgrel=29
+_commit="2bbe2395e94733d9cdc80c4734a494fe4299e1cd"
 # torvalds/linux commit that gtactive3.patch applies to; base + patch
 # is the tree of _commit in the gtactive3-mainline kernel (scripts/pmos-export)
 _base="f47d223627f80cb7a1eb14c585fe6cb35de5e984"
@@ -126,6 +127,6 @@ _dtb() {
 
 sha512sums="
 4cc471f94509680acb6f55e5c14babab5bf2a60edf014bcc48b55da8cb96dbd262645a82c81e9e2108d01d2eda59dae1844c797475a9691c7e43a43d53ff0917  linux-f47d223627f80cb7a1eb14c585fe6cb35de5e984.tar.gz
-66df06c73105cfe1a7c95800e1b6a35cca7049ce165c0be3b37d84a839bcb1245bb9af6b47cc0ece10435882b5de7f9cfc4c4e98d855f588ed3f4c04b7148d2e  gtactive3.patch
+d8ef98262b6108840bc64aa606782ee8046ab7b36db17f218915b6ca9894179dcb07b5a100a0ec54becb55764f7ed4367a808313e8c23ba5a4b8005d24b12ec8  gtactive3.patch
 bae048a5b87bb32c9d74d0d29afb495fbee440d34f0438fbae9786a6e326ed814bdcff5d8c1874da702ceffc56e7ff1b489657b6358e11a437cf574ce3de99b3  config-postmarketos-exynos9810.aarch64
 "

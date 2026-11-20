@@ -162,10 +162,13 @@ what is verified today.
       rate limit, touch boost kept, measured (D14.6): equal to balanced
       when quiet, -13 to -19 % under sustained load
 - [ ] In an image: r27 + r54 booted (26112001), D14.7 partly done
-      2026-11-20: upower 80/85, on/off and the re-apply pass; left: the
-      pause at 85 % while charging, a reboot, Noru's tile (shell/noru
-      86932638) in a Noru image
-- [ ] Screen-off drain with suspend (D14.8) and the remaining big items:
+      2026-11-20: upower 80/85, on/off, the re-apply and a reboot pass;
+      the r27 limit does not stop the current (CNFG_09 bit 7; D14.8, D14.9):
+      **kernel r29** gates on the CNFG_00 CHG bit and freezes the poll in
+      suspend. Next: r29 in an image, then the hold (I ≤ ~0) and the pause
+      at 85 % while charging; Noru's tile (shell/noru 86932638) in a Noru image
+- [x] Screen-off drain with suspend (D14.8, 2026-11-20): ~171 mA in s2idle
+- [ ] The remaining big items:
       panel/DSIM power-off, MIF devfreq, C2/SICD (roadmap above)
 - [ ] Cairn OS: the same design in cairn/core and Noru's quick settings
       (handed to the images and noru sessions, 2026-11-20)
