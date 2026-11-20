@@ -29,10 +29,12 @@ touching the tablet (reset → Download mode → automatic reflash, or watchdog 
    cpio). apk 3.0.10's "db: adopt only real directories" / "fs: resolve
    fsdir paths within the destination root" are the likely changes, with
    Nura's bin-merge (postmarketos-base 79). Upstream's next scheduled
-   build will hit it too. Fix: pin apk 3.0.9 in the build (not possible
-   from mkosi.tools.conf scripts, which mkosi ignores; a local tools
-   package directory needs openssl in the container; an apk-tools-static
-   3.0.9 sandbox tree is untested), or a fixed apk/systemd upstream.
+   build will hit it too. Fix (owner's OK, 2026-11-20): duranium-build
+   0047 overlays Alpine's static apk 3.0.9 (sha256 checked) through a
+   mkosi sandbox tree; with it the upstream qemu-amd64 build installs
+   systemd, its base, initrd and extensions. `APK_PIN=` turns it off once
+   a fixed apk or systemd is out (mkosi.tools.conf scripts are ignored by
+   mkosi; a local tools package directory needs openssl in the container).
    Then TESTPLAN V1, V4 and D12/D13 with the dev image, and D14.7
    (battery care on after the first boot: kernel r27 +
    samsung-gtactive3-common r54, merged 2026-11-20).
