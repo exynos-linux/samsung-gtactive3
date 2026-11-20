@@ -36,6 +36,12 @@ cable() {
 	else echo "not bound"; fi
 }
 
+# one at a time: a unit that is not installed (the register console comes
+# with the device package) or whose condition fails must not stop the rest
+start_units() {
+	for u in $units; do systemctl start --no-block "$u" 2>/dev/null || true; done
+}
+
 # the users logged in at the screen: their indicator and USB mode chooser
 session_users() {
 	loginctl list-sessions --no-legend 2>/dev/null | while read -r _ _ user seat _; do
@@ -111,8 +117,10 @@ turn_on() {
 	iface=$(cat /run/duranium-usb-debug.iface 2>/dev/null || true)
 	[ "$iface" = usb0 ] ||
 		echo "duranium-usb-debug: the debug interface is ${iface:-missing}, not usb0: ssh will not listen until a reboot" >&2
-	# shellcheck disable=SC2086
-	systemctl start --no-block $units
+	start_units
+	# postmarketOS's DHCP server on usb0: the host's NetworkManager drops
+	# the link (and its link-local address) when no lease comes
+	systemctl try-restart unudhcpd@usb0.service 2>/dev/null || true
 	[ -z "$signaller" ] || systemctl start usb-signaller.service
 	user_units stop usb-moded-notify.service
 	user_units start duranium-usb-debug-notify.service
@@ -142,8 +150,7 @@ boot)
 	# duranium-debug-sockets.service, after switch-root
 	need_root boot
 	if [ -e "$flag" ]; then turn_off; exit 0; fi
-	# shellcheck disable=SC2086
-	systemctl start --no-block $units
+	start_units
 	;;
 keys)
 	need_root keys

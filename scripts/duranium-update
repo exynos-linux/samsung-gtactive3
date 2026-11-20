@@ -42,10 +42,18 @@ OUT=${OUT:-$P/build/wt/duranium/mkosi.output/$NAME}
 LL=fe80::57:aff:fe00:1
 W=$P/build/.upd
 mkdir -p "$W"
-# Transport: the bring-up console over USB (default), or ssh when there is
-# no cable (GTA3_SSH=root@<tailscale address>, see scripts/tablet-remote).
-if [ -n "${GTA3_SSH:-}" ]; then
-	sshc() { ssh -o BatchMode=yes "$GTA3_SSH" "$@"; }
+# Transport: the USB debug ssh when this PC is paired (scripts/tab-ssh
+# --pair; the only way in on dev images with duranium-usb-debug r7+), else
+# the bring-up console over USB (open mode, older images), or ssh when there
+# is no cable (GTA3_SSH=root@<tailscale address>, see scripts/tablet-remote).
+usb_ssh=
+[ -z "${GTA3_SSH:-}" ] && "$P/scripts/tab-ssh" true 2>/dev/null && usb_ssh=1
+if [ -n "${GTA3_SSH:-}" ] || [ -n "$usb_ssh" ]; then
+	if [ -n "$usb_ssh" ]; then
+		sshc() { "$P/scripts/tab-ssh" "$@"; }
+	else
+		sshc() { ssh -o BatchMode=yes "$GTA3_SSH" "$@"; }
+	fi
 	# the console commands this script uses: "cat FILE" and "run /bin/sh FILE"
 	t() { case $1 in "run "*) sshc "${1#run }" ;; *) sshc "$1" ;; esac < /dev/null; }
 	tput_() { sshc "cat > '$2'" < "$1"; }
@@ -162,11 +170,16 @@ rm -f \$E/EFI/Linux/*_${OLDV}.efi \$E/EFI/Linux/*_${OLDV}+*.efi
 sync; ls \$E/EFI/Linux; [ \$E != /run/upd-esp ] || umount \$E"
 fi
 
-if [ -n "${GTA3_SSH:-}" ]; then
+if [ -n "${GTA3_SSH:-}" ] || [ -n "$usb_ssh" ]; then
 send() { # local remote len: zstd-compressed over ssh (a phone hotspot is slow)
 	local t0=$SECONDS got
-	got=$(head -c "$3" "$1" | zstd -q -3 -T0 -c |
-		sshc "zstd -q -d -c | dd of='$2' bs=1M iflag=fullblock conv=fsync 2>/dev/null; blockdev --getsize64 '$2' 2>/dev/null || stat -c %s '$2'" | head -1)
+	if command -v zstd >/dev/null; then
+		got=$(head -c "$3" "$1" | zstd -q -3 -T0 -c |
+			sshc "zstd -q -d -c | dd of='$2' bs=1M iflag=fullblock conv=fsync 2>/dev/null; blockdev --getsize64 '$2' 2>/dev/null || stat -c %s '$2'" | head -1)
+	else
+		got=$(head -c "$3" "$1" |
+			sshc "dd of='$2' bs=1M iflag=fullblock conv=fsync 2>/dev/null; blockdev --getsize64 '$2' 2>/dev/null || stat -c %s '$2'" | head -1)
+	fi
 	echo "  $2: written in $((SECONDS - t0)) s"
 	# a block device reports its whole size, a file its length: both >= len
 	[ -n "$got" ] && [ "$got" -ge "$3" ]
