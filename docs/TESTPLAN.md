@@ -454,10 +454,14 @@ units copied to /run, nothing installed):
 | D13.6 | installer over ssh: `GTA3_CONSOLE_PORT=2399 console.py probe/cmd/put/hash/get` | ✔ 3 MB upload, matching sha256 |
 
 Arming a way back for an off test: the re-enable must follow the off, not
-the moment the owner is asked (2026-11-20 15:25: a timer armed for +8 min
-fired before the tap and debug stayed off until the owner typed
-`sudo duranium-usb-debug on`). Use a path unit on the off flag:
+the moment the owner is asked; a fixed timer can fire before the tap. Use
+a path unit on the off flag:
 `systemd-run --unit=tablab-reenable --path-property=PathExists=/etc/duranium-usb-debug/disabled sh -c 'sleep 60; duranium-usb-debug on'`.
+2026-11-20 15:25-15:44: the tap never happened (no off in the journal);
+`duranium-usb-debug on` while already on rebuilds the gadget (link reset,
+15:33:59 from the timer, 15:43:37 by the owner), which left tab-ssh's shared
+ssh master hanging and the tablet looking unreachable. tab-ssh now sends
+keepalives so a dead master exits; "on" while on should be a no-op (r8).
 
 Still open, with an r7 image: 👆 Turn off from the notification (polkit);
 `duranium-usb-debug on` from a root terminal; boot with the off flag set

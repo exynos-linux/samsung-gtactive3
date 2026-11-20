@@ -21,7 +21,11 @@ ifc=$(for d in /sys/class/net/*; do [ "$(basename "$(readlink -f "$d/device/driv
 ctl=${XDG_RUNTIME_DIR:-/tmp}/gta3-ssh-%C
 opts=(-i "$KEY" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10
 	-o UserKnownHostsFile="$HOME/.ssh/known_hosts_gta3" -o StrictHostKeyChecking=accept-new
-	-o ControlMaster=auto -o ControlPath="$ctl" -o ControlPersist=60)
+	-o ControlMaster=auto -o ControlPath="$ctl" -o ControlPersist=60
+	-o ServerAliveInterval=5 -o ServerAliveCountMax=3)
+# A link reset (duranium-usb-debug on/off rebuilds the gadget) leaves the
+# shared master hanging and every later call with it; the keepalive makes a
+# dead master exit within 15 s so the next call connects afresh.
 case ${1:-} in
 --pair)
 	echo "this computer's key: $(ssh-keygen -lf "$KEY.pub" | cut -d' ' -f2)"
