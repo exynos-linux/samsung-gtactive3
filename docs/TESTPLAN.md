@@ -47,6 +47,17 @@ list` shows the old-named UKI as installed (not as a stranger) and the
 next update comes from `samsung-gtactive3-wifi_<ui>_edge-dev`; the old UKI
 is vacuumed after that. The boot menu's default is the new image.
 
+Result 2026-11-20 (tablet-lab, SM-T570 26102701 -> 26112001, phosh): ✔
+`updatectl update` took 26112001 from the old tag, booted with +2-0 and
+was blessed; os-release IMAGE_ID=samsung-gtactive3-wifi; the old-named
+26102701 UKI listed as installed; `updatectl check` asks
+`samsung-gtactive3-wifi_phosh_edge-dev` (no newer build yet). Only after
+removing a stale `/etc/sysupdate.d` (all 7 transfers frozen 2026-10-24 by
+the old duranium-set-channel, see duranium-build 0028: old URL, no legacy
+patterns), which showed both versions as "incomplete" and offered 26112001
+again. Moved to /var/lib/tablet-lab-backup/20261120/ on the tablet.
+Vacuuming the old UKI waits for the next build.
+
 **V3. LTE chained boot**: U-Boot's log names board `gtactive3` and
 `exynos9810-gtactive3.dtb` (S-Boot's `androidboot.bootloader=T575...`).
 
@@ -441,6 +452,12 @@ units copied to /run, nothing installed):
 | D13.4 | `usb-debug-ctl off`, `on` from a timer 45 s later | ✘ first try: usb-signaller's own NCM gadget kept the name usb0, ours came up as usb1, nothing listened until a reboot; ✔ with rm_gadget: back on usb0, ssh at once |
 | D13.5 | popup: drop-in for usb-moded-notify, reboot | ✔ `Result=exec-condition`, no chooser after the reboot |
 | D13.6 | installer over ssh: `GTA3_CONSOLE_PORT=2399 console.py probe/cmd/put/hash/get` | ✔ 3 MB upload, matching sha256 |
+
+Arming a way back for an off test: the re-enable must follow the off, not
+the moment the owner is asked (2026-11-20 15:25: a timer armed for +8 min
+fired before the tap and debug stayed off until the owner typed
+`sudo duranium-usb-debug on`). Use a path unit on the off flag:
+`systemd-run --unit=tablab-reenable --path-property=PathExists=/etc/duranium-usb-debug/disabled sh -c 'sleep 60; duranium-usb-debug on'`.
 
 Still open, with an r7 image: 👆 Turn off from the notification (polkit);
 `duranium-usb-debug on` from a root terminal; boot with the off flag set

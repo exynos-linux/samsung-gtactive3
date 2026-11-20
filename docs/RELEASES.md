@@ -216,6 +216,12 @@ updatectl update      # then: 26102215 replaces the slot of the older version
 
 Test builds never touch `/etc/sysupdate.d` or the channel.
 
+A tablet set up before duranium-build 0028 may still have every transfer
+frozen in `/etc/sysupdate.d` (the old duranium-set-channel copied them
+there; the SM-T570 had them from 2026-10-24 to 2026-11-20). They override
+the image's own transfers: old URL, no legacy-name patterns, versions shown
+as "incomplete". Move them out of `/etc/sysupdate.d` (TESTPLAN V4).
+
 ## On the tablet
 
 ```sh
