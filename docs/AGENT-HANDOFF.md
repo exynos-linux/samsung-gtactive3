@@ -5,6 +5,38 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-21 22:00 AEDT (session "tablet-lab"): Cairn updated 11.9 → 11.11 with bootc
+
+- The ESP's loader/ was backed up first (tablet-lab scratchpad, not in git).
+  Then cairn-ports' adopt (11.9 bundle) and the stock `just update` through
+  the ssh -R SOCKS proxy. 11.11 (sha256:42b659f7…) booted first try with
+  initramfs r57. bootc status: booted 11.11, rollback 11.9.
+- Adopt was not allowed to bless the stock 11.9 entry: that UKI resets on
+  the T570 (initrd deadline, before r57). Both 11.9 entries are set to +0-3
+  (used up), so the fallback after 11.11 is Duranium (loader default).
+- Cairn defects found and sent to images:
+  - Staged entries get no boot counter: cairn-boot-count-staged's stop job
+    is dropped by an ordering cycle with bootc-finalize-staged (default
+    dependencies).
+  - The Flathub preinstall loops: tmpfiles refuses /var/lib/flatpak owned by
+    flatpak with root-owned children, so the repo stays half made.
+  Evidence: ~/Projects/cairn-os/out/t570/report.txt, defects 21 and 22 (copy
+  in logs/test-runs/2026-11-21-cairn-2026.11.9/, gitignored).
+- Test-only state on the tablet, in /etc so it persists:
+  - the udisks ignore rule for the shared disk (until 11.12);
+  - a dconf system database t570test: no idle blank, lock or suspend (undo
+    in the report);
+  - the return timer to Duranium (20 min unless held).
+- Waits for the owner:
+  - the greeter keyboard icon tap;
+  - login with their PIN;
+  - the lock-screen keyboard icon;
+  - turning the tablet for the rotation test.
+- Next:
+  - those owner checks;
+  - the 11.12 udisks check for images2;
+  - a Duranium image with r57 and the boot-default fix 439583b8.
+
 ## State 2026-11-21 19:10 AEDT (session "tablet-lab"): Cairn 11.9 logged in, hardware checks, r57 handed off
 
 - The owner logged in on 11.9 (phosh session, system running). udiskie opened
