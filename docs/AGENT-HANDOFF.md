@@ -5,6 +5,38 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-21 13:30 AEDT (session "tablet-lab"): first Cairn flash, back on Duranium
+
+- Owner's yes 2026-11-21 12:03 (relayed by branding): Cairn OS 2026.11.3 (Noru,
+  image 495a6cd2) into the inactive slot with cairn-ports' slot bundle 0.1.7.
+  p3 (was 26112001's /usr, backed up and verified in ~/t570-slot-backup/) is now
+  `cairn-root` (PARTUUID ea29dd50-…), p2 `_empty`; the ESP holds the Cairn UKI,
+  its root addon and EFI/cairn/firstboot-user; loader.conf has `preferred cairn-*`,
+  timeout 1, the default line unchanged. A USB-debug kit (gadget, key-only sshd
+  on usb0:2201, a 20-min return timer) was injected into Cairn's /etc. Evidence:
+  logs/test-runs/2026-11-21-cairn-slot/ (local, no keys).
+- Result: all 3 counted Cairn boots reset into Download mode about 10 s after the
+  kernel started. Each needed the owner's Vol-Down+Power. After the third,
+  `preferred` skipped the entry (now `cairn-2026.11.3+0-3.efi`) and Duranium
+  26112002~test2 booted by itself (13:13:30). Duranium's data was untouched.
+- Cause (Cairn, not this port): cairn-chooser in Cairn's initrd counts the boot in
+  progress (sd-boot's `+2-1`) as a failed boot. It shows a 10 s countdown and then
+  does a one-shot reboot (`cairn.chooser.kexec=0`). Cairn also lacked this
+  port's `gtactive3wifi-reboot.tmpfiles` (reboot-param normal), so the reset kept
+  uniLoader's INFORM3=download and S-Boot stopped in Download mode. Lesson for any
+  OS on this board: without that tmpfiles line every reboot, panic or watchdog
+  reset ends in Download mode, and boot counting only works through the owner's
+  key presses. The fixes are in Cairn main (bdd09e4 reboot-param; the chooser fix
+  with branding) for images' 2026.11.5. Details:
+  side-session-notes/local_c3c8e5ce…/t570-cairn-2026.11.3-download-mode.md.
+- In flight: device.lock held by tablet-lab for the 2026.11.5 re-flash (ports'
+  bundle-2: uninstall-esp-entry.sh first, then write-slot with SLOT=/dev/loop0p3,
+  re-inject the kit, first boot with images' debug addon + `cairn.chooser=no`).
+  scripts/duranium-update refuses the `cairn-root` slot (a2d3bb9f).
+- Next: PLAN.md's next three steps. Waits for the owner: nothing until 2026.11.5;
+  heimdall from a container was refused by this session's permissions, so a
+  Download-mode stop still needs Vol-Down+Power.
+
 ## State 2026-11-20 21:30 AEDT (session "tablet-lab"): read-only checks, osk sysext, r55
 
 - No writes to userdata's nested GPT, the ESP or protected partitions (Cairn flash

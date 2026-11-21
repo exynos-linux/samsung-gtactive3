@@ -48,7 +48,10 @@ touching the tablet (reset → Download mode → automatic reflash, or watchdog 
    Cairn stays on Nura with apk, owner's correction 2026-11-20): the
    kernel, firmware and device packages stay apks as here, wired into the
    Cairn image with the images session; flash a Cairn image only after its QEMU pass,
-   Duranium kept recoverable. The 2026-10-25 work (r25 counted boots and
+   Duranium kept recoverable. First flash 2026-11-21 (2026.11.3 into p3, slot
+   bundle): it fell back to Duranium after 3 Download-mode resets. Cairn's chooser
+   reboots on every first boot and Cairn lacked the reboot-param tmpfiles
+   (handoff 2026-11-21). Next: images' 2026.11.5 with both fixes, debug addon on. The 2026-10-25 work (r25 counted boots and
    `scripts/pmos-verify`, r26, the boot hang, C2, deep sleep) and the LTE
    first boot stay queued behind these.
 
