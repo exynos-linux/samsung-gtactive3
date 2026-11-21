@@ -5,6 +5,40 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-21 18:45 AEDT (session "tablet-lab"): Cairn 2026.11.9 boots once our deadline is off
+
+- Root cause of the 2026.11.9 reset found: gtactive3wifi-initrd-deadline.service
+  (samsung-gtactive3-common) ticks with `sleep 5`; Cairn's initrd has busybox
+  without applet links and no sleep, so each tick failed at once (rc 127), the
+  600 s ran out in milliseconds and it rebooted to Download mode at ~1.7 s
+  (pstore: "Restarting system with command 'download'"). The cairn-dbg entry had
+  gtactive3wifi.initrd_deadline=0 and booted; the watchdog and panic settings
+  were ruled out. usb-prep's ExecStartPost failed the same way (mkdir/touch),
+  printing a red FAILED over the splash.
+- Fixed and pushed: cb3fd9d0 + eeeaec39 (deadline falls back to busybox sleep,
+  turns itself off with no sleep), 8541bd1a (usb-prep marker without coreutils);
+  samsung-gtactive3-common pkgrel 57. Not yet built into a Duranium image or
+  tested on the device; Duranium's behaviour is unchanged where sleep exists.
+- Verified on the device: cairn-nodl-2026.11.9.efi (the shipped UKI, .cmdline +
+  gtactive3wifi.initrd_deadline=0, sha 9d7fe5c5…) booted twice, chooser (4
+  entries, "failed 3x" marker, countdown), splash, greetd -> phrog greeter with
+  Cairn branding, bless-boot good, system running. 32.4 s to userspace done
+  (firmware 16.0 s). Camera recording of boot 2 (Galaxy Tab Active5 facing the
+  tablet, camera app only): logs/test-runs/2026-11-21-cairn-2026.11.9/
+  nodl-boot2.mp4 (local, logs/ is gitignored); ~8 s black between the splash
+  and the greeter. Report and stills: ~/Projects/cairn-os/out/t570/report.txt,
+  cam-0*.png.
+- Told images/images2: initrd busybox applets, /var/lib/firmware (no Wi-Fi/BT
+  on Cairn yet), splash until phoc takes DRM master, KillMode=none, no RTC time.
+- ESP now: cairn-nodl-2026.11.9.efi (blessed) preferred (loader.conf
+  `preferred cairn-nodl-*`, backup loader/loader.conf.tablet-lab-bak with
+  `preferred cairn-[0-9]*`), cairn-dbg (blessed), cairn-2026.11.9+0-3
+  (exhausted), Duranium 26112002~test2 default fallback.
+- Next: images' 2026.11.10 with r57; the owner logs in with the PIN, then noru's
+  checks (noru-tablet-tests.md, GTK 4 dock); a Duranium image with r57 to
+  confirm the deadline still fires there.
+- Waits for the owner: the PIN login on the tablet.
+
 ## State 2026-11-21 17:55 AEDT (session "tablet-lab"): Cairn 2026.11.9 resets, diag build armed
 
 - 2026.11.9 flashed into p3 from Duranium (ports' bundle-3; logs/test-runs/

@@ -57,9 +57,14 @@ touching the tablet (reset → Download mode → automatic reflash, or watchdog 
    to the greeter first try 2026-11-21 14:52. 2026.11.9 (modules + the bless-boot ESP
    fix) still reset into Download mode 30 s after reboot (2026-11-21 16:24); its
    remaining suspects are the panic/oops/hung-task reboots and the watchdog reset that
-   modtest3 had off. Next: the cairn-diag-2026.11.9 try (panic=0, soft_noboot, verbose;
-   armed, waits for the owner's keys), images' fix in 2026.11.10, then the
-   splash/chooser/failure screen checks and a fair (unplugged s2idle) drain test. The 2026-10-25 work (r25 counted boots and
+   modtest3 had off. Cause found 2026-11-21 18:2x: our initrd deadline unit's
+   `sleep 5` (Cairn's initrd has no sleep, so the 600 s ran out at once and it
+   rebooted to Download mode); the same UKI with gtactive3wifi.initrd_deadline=0
+   booted to the greeter and was blessed twice, chooser and splash on camera.
+   Fixed in samsung-gtactive3-common r57 (cb3fd9d0, 8541bd1a). Next: images'
+   2026.11.10 with r57 and busybox applets in the initrd, firmware in
+   /var/lib/firmware, the splash kept until phoc draws (8 s black now); the
+   owner's PIN login and noru's checks; a fair (unplugged s2idle) drain test. The 2026-10-25 work (r25 counted boots and
    `scripts/pmos-verify`, r26, the boot hang, C2, deep sleep) and the LTE
    first boot stay queued behind these.
 
