@@ -38,6 +38,14 @@ yourself, autonomously, overnight. Keep going until the mission is met.
   checks (noru-tablet-tests.md, GTK 4 dock); a Duranium image with r57 to
   confirm the deadline still fires there.
 - Waits for the owner: the PIN login on the tablet.
+- 18:40 login check: the owner's "Login failed" was one wrong PIN (first nodl
+  boot, 220 s: unix_chkpwd failed for cairn, pam AUTH_ERR). The private file's
+  PIN matches the tablet's hash (offline check, match/mismatch only). After the
+  failure phrog's greetd CancelSession got "Connection refused", so the greeter
+  takes no second try until it restarts (told images). 2026.11.9 has no
+  first-boot wizard (no ESP file = no user), so the cairn user was kept; the
+  owner was told to log in as cairn with the PIN from the private file.
+  Dropping the ESP firstboot-user file waits for the wizard in the image.
 
 ## State 2026-11-21 17:55 AEDT (session "tablet-lab"): Cairn 2026.11.9 resets, diag build armed
 
