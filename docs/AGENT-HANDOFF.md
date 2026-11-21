@@ -5,6 +5,41 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-21 15:10 AEDT (session "tablet-lab"): Cairn boots on the T570
+
+- 2026.11.5 (ports' bundle-2, into p3 again; write-slot log in
+  logs/test-runs/2026-11-21-cairn-2026.11.5/) still reset into Download mode about
+  10 s into the kernel: the normal UKI, a debug entry (no splash/chooser, panic=0,
+  loglevel 7) and dbg2 alike. pstore kept nothing (RAM is not kept across Download
+  mode). Cause: Cairn's initrd lacked this board's modules (max77705 and its
+  charger/usbc psy, max17042_battery, sec_core, sec_acpm, acpm_protocol, clk_acpm,
+  exynos_mailbox, exynos9810_tmu, s2mps11, extcon_sm5502 ...). Proof: the same UKI
+  with Duranium's 416-module initrd segment appended (cairn-modtest3) booted to
+  the phrog greeter on its first try, greetd at 11.8 s.
+  Evidence: ~/Projects/cairn-os/out/t570/modtest3/ (journal, dmesg, lsmod,
+  systemd-analyze, drain) and modtest3-greeter.png.
+- Cairn's first user (made by ports, owner not asked) was created correctly. The
+  owner's login failed because they never had the PIN: the tablet's hash is ports'
+  bundle-2 hash for the PIN in cairn-os/.private/t570-first-user (checked by
+  fingerprint, PIN never read by an agent).
+- Bug: Cairn mounts no ESP, so systemd-bless-boot fails ("Couldn't find $BOOT") and
+  a working Cairn entry falls back next boot. images' cairn-bless-esp fix passed
+  live 15:05 (found loop0p1 by LoaderDevicePartUUID, marked good); the entry was
+  renamed back to +0-1 so the next start still falls back to Duranium.
+- Drain at the Cairn greeter with USB attached: 12 mA net dimmed, 219 mA bright;
+  no blank or suspend at the greeter, so not comparable with Duranium's 171 mA
+  s2idle figure (out/t570/modtest3/drain-summary.txt).
+- Tablet now: Cairn modtest3 running (unblessed); ESP: cairn-2026.11.5+0-3,
+  cairn-modtest3-2026.11.5+0-1, Duranium 26112002~test2 (default). Next start ->
+  Duranium. device.lock held by tablet-lab.
+- Next: 2026.11.8 (modules + bless fix) via bundle-3 from Duranium
+  (restore-default.sh, write-slot.sh into loop0p3, install-esp-entry.sh,
+  prefer-cairn.sh); then splash upright, chooser and failure screen, blessing,
+  and a fair drain test. Owner's asks forwarded: own background for branding and
+  the setup screen (branding), GTK4/libadwaita throughout (noru's plan).
+- Waits for the owner: logging in with the PIN from the private file; key presses
+  only if a Cairn boot lands in Download mode.
+
 ## State 2026-11-21 13:30 AEDT (session "tablet-lab"): first Cairn flash, back on Duranium
 
 - Owner's yes 2026-11-21 12:03 (relayed by branding): Cairn OS 2026.11.3 (Noru,

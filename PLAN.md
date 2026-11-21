@@ -51,7 +51,12 @@ touching the tablet (reset → Download mode → automatic reflash, or watchdog 
    Duranium kept recoverable. First flash 2026-11-21 (2026.11.3 into p3, slot
    bundle): it fell back to Duranium after 3 Download-mode resets. Cairn's chooser
    reboots on every first boot and Cairn lacked the reboot-param tmpfiles
-   (handoff 2026-11-21). Next: images' 2026.11.5 with both fixes, debug addon on. The 2026-10-25 work (r25 counted boots and
+   (handoff 2026-11-21). 2026.11.5 also reset into Download mode (with and without
+   splash/chooser); cause: Cairn's initrd lacked this board's modules (max77705 PMIC/charger,
+   ACPM, TMU, s2mps). A test UKI with Duranium's initrd modules appended (modtest3) booted
+   to the greeter first try 2026-11-21 14:52. Next: images' 2026.11.8 (modules + the
+   bless-boot ESP fix, tested live) via ports' bundle-3, then the splash/chooser/failure
+   screen checks and a fair (unplugged s2idle) drain test. The 2026-10-25 work (r25 counted boots and
    `scripts/pmos-verify`, r26, the boot hang, C2, deep sleep) and the LTE
    first boot stay queued behind these.
 
