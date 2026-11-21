@@ -11,7 +11,7 @@ maintainer="dixonSolutions <203963471+dixonSolutions@users.noreply.github.com>"
 pkgname=samsung-gtactive3-common
 pkgdesc="Samsung Galaxy Tab Active3: support shared by every variant"
 pkgver=2
-pkgrel=56
+pkgrel=57
 url="https://github.com/exynos-linux/samsung-gtactive3"
 license="MIT"
 arch="aarch64"
@@ -465,7 +465,7 @@ initramfs() {
 
 sha512sums="
 acba813ff0feb882b6cb0cc4b4c9f8dc0b9b58cb3da7c6a87920ecf4ef63670ac90f23d3ca6bc5b057832fe8e4388c1eca60b6c79c7f3e50eab6d5986cd349d7  gtactive3wifi-usb-prep.c
-fcf5c1e3a2c601e30acc506b7996770dfeddf2cc2b920bc9acb2858442b2aad71ab2d0fd50590e0cdacc8ebb14fb1c04bdca0007268ad6f62f5988a8ac61e3ad  gtactive3wifi-usb-prep.service
+20423df55d57f7791d22c647927a3d3221225d0397410ec916b4e780ff6cc67123299f84006ac2d0dcb697307c4fc5630350b0d069c9cc84971de14f6e2d4aab  gtactive3wifi-usb-prep.service
 28297b58b56192c894ed5a1f60a4834b4490945054b6db21dcf72212605fdf4a5cd153331313eab1b78d65b13402038dfd08f5b41e1da9b3bb02db0d012328dc  gta3-console.c
 7478791a06e1df0b4816ae0764e6a688a8b01b6f776ec6d6ae0c4ee09209d166726529419c4cc36321282956abeb70b2e9d8d9fe8656217fae809c901f75b171  gta3-console-libc.h
 1924f7d76decd14d90c845cae4f3f5a30d52add2a8a72e18e1020a60194fac6d5aa6043c613ff0af222386e75f56571f68a030ce76ef0523b432cc10f9510f8e  gta3-debug-console.socket
