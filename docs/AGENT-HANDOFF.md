@@ -5,6 +5,34 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-21 17:55 AEDT (session "tablet-lab"): Cairn 2026.11.9 resets, diag build armed
+
+- 2026.11.9 flashed into p3 from Duranium (ports' bundle-3; logs/test-runs/
+  2026-11-21-cairn-2026.11.9/: root sha256 8149de7c…, PARTUUID a6a602c8, ESP entry
+  cairn-2026.11.9+3.efi + cairn-dbg (menu only), preferred cairn-[0-9]*, timeout 1).
+  Its first try reset into Download mode 30 s after a clean reboot (16:23:32 ->
+  16:24:02), no Cairn USB gadget. Its initrd now has the board modules (221 .ko,
+  max77705/max17042/sec-core/s2mps11/acpm/cpufreq-dt), so that is not the cause.
+- Left vs modtest3 (which booted): oops=panic + hung_task_panic=1 + panic=10 and
+  the SoC watchdog's reset (modtest3: panic=0, s3c2410_wdt.soft_noboot=1), plus
+  quiet, chooser show:3, splash, systemd-battery-check (images: unlikely, its
+  failure is a power-off, not a reset).
+- Armed: cairn-diag-2026.11.9.efi (~/Projects/cairn-os/out/t570/, sha bd971bfe…),
+  the normal UKI with .cmdline only changed (-quiet, loglevel=7, panic=0,
+  s3c2410_wdt.soft_noboot=1, cairn.splash=no); installs as +1 (one try) with
+  preferred cairn-diag-* as soon as Duranium's ssh is up (scratchpad
+  diag-install.sh, background). Reboot into it by hand after the checks.
+- Tablet now: Download mode since 16:24, waiting for the owner's keys
+  (Vol-Down+Power ~7 s, then only Power at "Hold Power to start"); the normal
+  entry's tries 2-3 come first, then Duranium. device.lock held by tablet-lab.
+- Next: diag try -> an oops on screen names the driver; boots -> dmesg for
+  watchdog/oops/hung; still resets -> retry with cairn.chooser=no. images folds
+  the fix into 2026.11.10 (with phoc r102, Noru r5); then the splash/chooser/
+  bless/login checks and noru's device list (noru-tablet-tests.md, incl. the
+  GTK 4 dock).
+- Waits for the owner: the key presses above; later, logging in with the PIN
+  from the private file.
+
 ## State 2026-11-21 15:10 AEDT (session "tablet-lab"): Cairn boots on the T570
 
 - 2026.11.5 (ports' bundle-2, into p3 again; write-slot log in

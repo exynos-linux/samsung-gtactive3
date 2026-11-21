@@ -54,9 +54,12 @@ touching the tablet (reset → Download mode → automatic reflash, or watchdog 
    (handoff 2026-11-21). 2026.11.5 also reset into Download mode (with and without
    splash/chooser); cause: Cairn's initrd lacked this board's modules (max77705 PMIC/charger,
    ACPM, TMU, s2mps). A test UKI with Duranium's initrd modules appended (modtest3) booted
-   to the greeter first try 2026-11-21 14:52. Next: images' 2026.11.8 (modules + the
-   bless-boot ESP fix, tested live) via ports' bundle-3, then the splash/chooser/failure
-   screen checks and a fair (unplugged s2idle) drain test. The 2026-10-25 work (r25 counted boots and
+   to the greeter first try 2026-11-21 14:52. 2026.11.9 (modules + the bless-boot ESP
+   fix) still reset into Download mode 30 s after reboot (2026-11-21 16:24); its
+   remaining suspects are the panic/oops/hung-task reboots and the watchdog reset that
+   modtest3 had off. Next: the cairn-diag-2026.11.9 try (panic=0, soft_noboot, verbose;
+   armed, waits for the owner's keys), images' fix in 2026.11.10, then the
+   splash/chooser/failure screen checks and a fair (unplugged s2idle) drain test. The 2026-10-25 work (r25 counted boots and
    `scripts/pmos-verify`, r26, the boot hang, C2, deep sleep) and the LTE
    first boot stay queued behind these.
 
