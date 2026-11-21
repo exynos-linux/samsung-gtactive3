@@ -5,6 +5,35 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-21 19:10 AEDT (session "tablet-lab"): Cairn 11.9 logged in, hardware checks, r57 handed off
+
+- The owner logged in on 11.9 (phosh session, system running). udiskie opened
+  LUKS dialogs for Duranium's data (loop0p6), and stopping it asked polkit to
+  unmount Cairn's root. Fixed by images2 in 9bb0c66 for 11.10: never stop
+  udiskie on the tablet, mask it.
+- Cameras on Cairn: kernel and PipeWire work (csis x2, s5k3l6 + dw9807,
+  gc5035, both listed by wireplumber). Missing for 11.11: an app (snapshot)
+  and the SoftISP yaml. Only the -initramfs subpackage is in Cairn's image,
+  so about 30 main-package files are absent (side-session note
+  tablet-lab-cairn-camera-and-device-files.md).
+- Vibrator: feedbackd drives gpio-vibrator, proved by ftrace gpio_value. The
+  motor is on/off, so short pulses (button-pressed is 7 ms) are likely not
+  felt; noru got the device-theme suggestion.
+- r57 (cb3fd9d0, eeeaec39, 8541bd1a) was built by CI run 44880926681. The
+  initramfs apk went to images at ~/cairn-handoff/gtactive3-r57/apks (sha256
+  5de8594e…) for 11.10. Not yet in a Duranium image.
+- Wi-Fi firmware for Cairn: none on the PC. The owner was asked once for the
+  T570XXSFEYI1 stock zip in firmware/stock/ and a yes to extract it.
+- The 11.10 checklist (side-session note tablet-lab-11.10-checklist.md) now
+  includes hands-off UX checks: touch injection, rotation, haptics, apps,
+  udisks.
+- ESP is unchanged: nodl preferred until 11.10 (backup loader.conf
+  .tablet-lab-bak).
+- Waits for the owner: a 10-min USB unplug for the drain test; the stock
+  firmware zip and a yes.
+- Next: 11.10 test with the checklist; Wi-Fi firmware once the zip is here;
+  a Duranium image with r57 to confirm the deadline still fires there.
+
 ## State 2026-11-21 18:45 AEDT (session "tablet-lab"): Cairn 2026.11.9 boots once our deadline is off
 
 - Root cause of the 2026.11.9 reset found: gtactive3wifi-initrd-deadline.service
