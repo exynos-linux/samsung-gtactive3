@@ -18,8 +18,9 @@ initrd):
 - gtactive3wifi-initrd-deadline.service (initrd only): reboots to Download
   mode if the initrd has not switched root after 600 s, not counting the
   time a password prompt is open (PID 1 keeps petting the watchdog while
-  the initrd waits forever for a missing root disk). Off:
-  gtactive3wifi.initrd_deadline=0.
+  the initrd waits forever for a missing root disk). An initrd with no
+  sleep (neither a sleep link nor busybox) gets the deadline off, not a
+  reboot. Off: gtactive3wifi.initrd_deadline=0.
 - 90-gtactive3wifi-nested-gpt.rules: exposes the GPT nested in the
   userdata partition as a partitioned loop device.
 
