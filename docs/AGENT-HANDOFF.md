@@ -14,8 +14,10 @@ yourself, autonomously, overnight. Keep going until the mission is met.
 - The OSK (cairn-osk r3) comes up docked-bottom in a text field. Switching
   to floating and back over os.cairn.Osk1 works.
 - With noru r7, the dock jumps above a docked keyboard. noru r8 fixes that.
-- Stale grey and orange ellipses stay drawn after the dock moves. They
-  survive a keyboard mode change and a 180° rotation (shell-drawn).
+- The grey and orange "ellipses" seen through the keyboard are the Cairn
+  wallpaper's pebbles behind the see-through r3 keyboard (glass 0.6), not a
+  bug (noru, 2026-11-21 23:45). cairn-osk r4 makes the keyboard less
+  see-through.
 - The keyboard opened on the symbol layer in a plain search field.
 - Rotation turns the screen. The owner reports a broken animation; phoc
   r104 is the fix, in 11.13.
@@ -32,6 +34,8 @@ yourself, autonomously, overnight. Keep going until the mission is met.
   - letters and numbers on the password keyboard.
 - Evidence: the shared notes folder's tablet-lab-shots-2026-11-21/ and
   ~/Projects/cairn-os/out/t570/report.txt (defect 23).
+- 11.13 (cef96f05) is staged with bootc upgrade (fixed boot-count unit in
+  /run). The reboot waits for the owner's yes.
 - The owner is now using the tablet by hand: touch injection is stopped.
   The device lock stays with tablet-lab for the 11.13 update.
 - Next:
