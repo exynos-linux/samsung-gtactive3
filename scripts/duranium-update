@@ -22,6 +22,8 @@
 #
 #   scripts/duranium-update [VERSION]   default: newest build in mkosi.output
 #   EXTENSIONS="dev-tools waydroid" ...  extensions to deliver ("" = none)
+#   TAKE_SLOT=cairn-root ...             overwrite an inactive slot another
+#                                        OS labelled so; refused otherwise
 #   UI=phosh ...                         image variant (default gnome); a
 #                                        switch is an A/B update like any other
 #   IMAGE=samsung-gtactive3-lte ...      the image name of the tablet's
@@ -148,6 +150,15 @@ TV=$(pick 6e11a4e7-fbca-4ded-b9e9-e1a512bb664e "$CV")
 	die "expected exactly one inactive usr and one inactive verity partition (got '$TU' '$TV')"
 for n in $TU $TV; do
 	echo "$PARTS" | grep -q "^$n .*pmOS_root" && die "refusing: $n is the root partition"
+	# Another OS may live in the inactive slot (Cairn's slot route relabels
+	# the usr partition cairn-root and keeps its root and /var there): only
+	# Duranium's own or empty slots are taken, unless the owner says so.
+	l=$(echo "$PARTS" | awk -v n="$n" '$1 == n { print $2 }')
+	case $l in
+		duranium_*|_empty|-) ;;
+		*) [ "${TAKE_SLOT:-}" = "$l" ] ||
+			die "refusing: $n is labelled '$l', not a Duranium slot (TAKE_SLOT=$l erases it)" ;;
+	esac
 done
 USZ=$(echo "$PARTS" | awk -v n="$TU" '$1 == n { print $5 }')
 VSZ=$(echo "$PARTS" | awk -v n="$TV" '$1 == n { print $5 }')
