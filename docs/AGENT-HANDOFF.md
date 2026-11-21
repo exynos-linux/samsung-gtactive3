@@ -5,6 +5,43 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-21 23:00 AEDT (session "tablet-lab"): Cairn 11.11 session probed, owner on the tablet
+
+- The session was unlocked with `loginctl unlock-session c3` (no PIN
+  typed). Touches were injected with a volatile uinput device (a test helper
+  in /run, now stopped). Screenshots came from the DRM scanout.
+- The dconf test override works: idle-delay is 0.
+- The OSK (cairn-osk r3) comes up docked-bottom in a text field. Switching
+  to floating and back over os.cairn.Osk1 works.
+- With noru r7, the dock jumps above a docked keyboard. noru r8 fixes that.
+- Stale grey and orange ellipses stay drawn after the dock moves. They
+  survive a keyboard mode change and a 180° rotation (shell-drawn).
+- The keyboard opened on the symbol layer in a plain search field.
+- Rotation turns the screen. The owner reports a broken animation; phoc
+  r104 is the fix, in 11.13.
+- The second greeter (noru-switch-greeter) took the screen twice, 10:11 and
+  10:52 tablet time. It was most likely a finger on "Switch user" next to
+  Unlock. `systemctl stop noru-switch-greeter.service` brings back the
+  session.
+- The owner asked for these lock-screen changes, which noru (greeter r4,
+  38342dea, lock screen uncommitted) and osk (a88ea2c) are building:
+  - a Users pill with a users screen;
+  - Unlock down and right of the pad;
+  - a libadwaita password row with an eye icon;
+  - an N/123 pill for the pad;
+  - letters and numbers on the password keyboard.
+- Evidence: the shared notes folder's tablet-lab-shots-2026-11-21/ and
+  ~/Projects/cairn-os/out/t570/report.txt (defect 23).
+- The owner is now using the tablet by hand: touch injection is stopped.
+  The device lock stays with tablet-lab for the 11.13 update.
+- Next:
+  - On 11.13: +N boot counters, /var/lib/flatpak/repo, the udisks check
+    (move the /etc rule aside first), rotation with phoc r104 and
+    G_MESSAGES_DEBUG, the noru r8 dock and edge swipe, the r4 lock and
+    greeter, and a bootc rollback and roll forward.
+  - A Duranium image with r57 and the boot-default fix 439583b8 (the
+    owner's own yes).
+
 ## State 2026-11-21 22:00 AEDT (session "tablet-lab"): Cairn updated 11.9 → 11.11 with bootc
 
 - The ESP's loader/ was backed up first (tablet-lab scratchpad, not in git).
