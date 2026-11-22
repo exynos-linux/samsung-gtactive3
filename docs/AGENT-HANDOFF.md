@@ -5,6 +5,47 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-22 16:40 AEDT (session "tablet-lab"): owner-session tests on Cairn 11.15
+
+- The owner said "Yes, test now". I ran the tests with injected touches in
+  the owner's logged-in session and unlocked with `loginctl
+  unlock-session` (no PIN typed). Captures are `t570-1115-*.png` in the
+  shared notes folder's `tablet-lab-shots-2026-11-22/`.
+- Passed:
+  - Dock r8 with a docked keyboard: the keyboard draws over the dock, and
+    the dock shows faintly through the glass.
+  - A short left-edge swipe with an app in front hides the keyboard
+    (Android back); the app stays.
+  - Lock screen r9:
+    - The unlock key is in the pad, with the Users and keyboard pills.
+    - The keyboard pill brings up the floating keyboard, with
+      Users/123/unlock above it.
+    - ⌄ hides the keyboard and the pad comes back. phosh is the same pid
+      throughout, with no crash.
+  - udiskie runs with no prompts after login (image rules only).
+- Sent to noru:
+  - On the app overview, the edge swipe does not reach the edge strips, so
+    it can't close the keyboard there.
+  - Once, the overview opened 1-2 s after a successful hide. It did not
+    repeat.
+  - In keyboard mode, the lock screen shows no visible password entry.
+- Sent to osk: os.cairn.osk glass-level holds a float residue
+  (1.39e-17). Sent to images: a "USB netboot_mode mode" notification shows
+  on the lock screen.
+- The keyboard is back in the owner's floating mode. A test SetMode wrote
+  the gsetting; it is restored.
+- The device lock stays with tablet-lab. The hold keeper runs until about
+  18:00 PC time; after that the return timer takes the tablet back to
+  Duranium.
+- Next:
+  - Rotation with phoc r104, which needs the owner to turn the tablet.
+  - bootc rollback and roll forward.
+  - Defect 21 (+3 counter), once images fixes it.
+  - The osk r4/r5 checks, once an images build carries them.
+- Waits for the owner:
+  - the dock choice: "keep as is" or "swipe only";
+  - turning the tablet for the rotation test.
+
 ## State 2026-11-22 16:20 AEDT (session "tablet-lab"): T570 on Cairn 11.15
 
 - The owner said yes in tablet-lab. I removed the dead 11.13 entry and its
