@@ -18,10 +18,20 @@ yourself, autonomously, overnight. Keep going until the mission is met.
     samsung-gtactive3-common-hardware (r58, `firmware-import.sh` from the ESP
     tarball, `tools/fw_index.py` names). Sent to images. The super read is
     only a fallback.
+- 17:40, read-only driver baseline on 11.15 for ports' r59 work (brief:
+  `~/cairn-handoff/briefs-2026-11-22/tablet-lab.md`); details in
+  `cairn-os/out/t570/report.txt` 17:40.
+  - Broken: Wi-Fi MAC is random (no EFS rule), no Wi-Fi sleep hook or
+    recover service, no firmware-import (hand copy only), s2idle only, no
+    typec role switch, proximity reads 0, battery care doesn't stop
+    charging.
+  - BT, audio, cameras, the S Pen and NFC probe but are untested end to end.
+  - Battery at 26 %, discharging on USB.
 - When the lock returns to tablet-lab, the next steps are:
   - the rotation test (phoc r10x; the owner turns the tablet);
   - checks for osk r5;
-  - the 11.18 parity rows (Wi-Fi, BT, audio and sensors from -hardware r58);
+  - the same driver checks on 11.18 (-hardware r58), then on r59+, before
+    and after for each driver;
   - a retest of defect 21.
 
 ## State 2026-11-22 16:40 AEDT (session "tablet-lab"): owner-session tests on Cairn 11.15
