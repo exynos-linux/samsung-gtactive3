@@ -5,6 +5,25 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-22 17:35 AEDT (session "tablet-lab"): lock with images2, owner answers relayed
+
+- images2 holds the Cairn device lock for the T570 2026.11.18 release test.
+  It re-took the lock at 17:31; see `cairn-os/.scaffold/tablet/LOG.md`. The
+  tablet is unchanged: Cairn 11.15, with 11.14 as rollback.
+- Owner answers I relayed:
+  - The dock should be "like one ui, not keep". Sent to noru.
+  - "Yes, read-only" to reading super for the Wi-Fi firmware. Sent to images
+    and images2. It covers reads only: no writes, no NEVER_READ partitions.
+  - "not from scratch": reuse this port's drivers and
+    samsung-gtactive3-common-hardware (r58, `firmware-import.sh` from the ESP
+    tarball, `tools/fw_index.py` names). Sent to images. The super read is
+    only a fallback.
+- When the lock returns to tablet-lab, the next steps are:
+  - the rotation test (phoc r10x; the owner turns the tablet);
+  - checks for osk r5;
+  - the 11.18 parity rows (Wi-Fi, BT, audio and sensors from -hardware r58);
+  - a retest of defect 21.
+
 ## State 2026-11-22 16:40 AEDT (session "tablet-lab"): owner-session tests on Cairn 11.15
 
 - The owner said "Yes, test now". I ran the tests with injected touches in
