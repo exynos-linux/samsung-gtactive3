@@ -28,11 +28,21 @@ estimates. The T570 is with the owner, so nothing here is device-tested.
   boot-default .efi pattern, RTC clock rules). Those are not in this tree, so
   this tree skipped to r31/r61. Their changes need merging back here, and
   ours need porting there.
+- Superseded the same day by the ports session's merge in
+  cairn-os/ports/samsung-gtactive3:
+  - kernel r32 (f1496009) = our r31 plus their RTC patch 0156;
+  - common r62 (dd1e5e76) = our r61 on top of their r60.
+  Since 2026-11-22 (projects-6e), that tree (its GitLab copy) is the source
+  for the kernel and common aports, and this repo's copies are reference
+  only. Make kernel or common changes there, or send them to the ports
+  session. Never publish this tree's r31/r61 to build/device-repo: they lack
+  the RTC. D14.10 and D14.11 run on a Cairn image with r32/r62 (tablet-lab
+  queued them behind images2's lock).
 - Noru got the field-trust table and the estimate recipe (time-to-empty and
   time-to-full from charge_now/current_now, not the gauge's time_to_*):
   `~/.config/Claude/side-session-notes/local_f59ec6de-9d10-435f-8b0b-82cca0834fbd/battery-fields-for-noru.md`.
 - Next: PLAN.md's next three steps. For this work: D14.10 (fast charging on a
-  3 A charger) and D14.11 (saver cpuset) when tablet-lab holds the device,
+  3 A charger) and D14.11 (saver cpuset) on r32/r62 when tablet-lab holds the device,
   then Fast as the default.
 - Waits for the owner: nothing physical until those tests, which need a 3 A
   USB-C charger plugged in.
