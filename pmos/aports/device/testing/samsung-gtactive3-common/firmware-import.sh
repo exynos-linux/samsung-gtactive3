@@ -14,7 +14,8 @@
 # swapped in whole, so a damaged or partial copy is never used.
 set -eu
 
-src=/boot/gtactive3wifi-firmware.tar.zst
+# Cairn OS mounts no /boot: its unit drop-in mounts the ESP itself and names the file here
+src=${GTA3_FIRMWARE_SRC:-/boot/gtactive3wifi-firmware.tar.zst}
 dst=/var/lib/firmware
 
 want=$(cut -d' ' -f1 "$src.sha256")
