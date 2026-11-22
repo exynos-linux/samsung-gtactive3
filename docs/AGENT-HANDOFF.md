@@ -5,6 +5,52 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-22 16:20 AEDT (session "tablet-lab"): T570 on Cairn 11.15
+
+- The owner said yes in tablet-lab. I removed the dead 11.13 entry and its
+  UKI from the ESP.
+  - New loader.conf: `default samsung-gtactive3*`, `timeout 1`,
+    `preferred bootc_*`.
+  - Duranium's copy of the old one: `loader/loader.conf.duranium-20261122`.
+- 11.14 booted and was blessed. 11.15 was staged once and booted.
+  - bootc: booted 2026.11.15, rollback 2026.11.14, nothing staged.
+  - The system is running with no failed units.
+- Passed on 11.15:
+  - The greeter r4 Users screen, the PIN pad, the keyboard pill and the
+    password entry with the eye icon.
+  - The OSK opens and hides on the greeter without a crash.
+  - Screenshots: the shared notes folder's `tablet-lab-shots-2026-11-22/`.
+- Defects sent to their owners (details in
+  ~/Projects/cairn-os/out/t570/report.txt):
+  - images, defect 21 still open: the staged-entry counter. cairn-bless-esp
+    looks for the ESP by the entry name from before systemd-bless-boot
+    renamed it, so 11.15 booted with no +3 counter.
+  - images, defect 22: the offline flatpak stamp. No apps are installed.
+  - images2: the UFS LUNs, including the cpefs EFS partition, are still
+    visible in udisks.
+  - osk: the wallpaper pebbles show through the greeter form.
+- Test overrides on the tablet:
+  - The /etc udisks rule is moved aside to `.t570-aside`. Undo: move it
+    back.
+  - The touch helper runs as the transient unit `t570-touchd`. Stop it with
+    `systemctl stop t570-touchd`.
+  - The dconf no-lock override is unchanged; undo as before.
+- The device lock stays with tablet-lab. The hold keeper runs until about
+  18:00 PC time. After that, the debug return timer brings the tablet back
+  to Duranium within 30 min.
+- Next:
+  - When the owner logs in at the greeter:
+    - the lock screen r9, including hiding the keyboard there without a
+      crash;
+    - the dock r8 and edge swipe;
+    - udiskie prompts;
+    - rotation, which needs the owner to turn the tablet.
+  - bootc rollback and roll forward.
+  - A Duranium image with r57 and 439583b8 (the owner's own yes).
+- Waits for the owner:
+  - logging in with their PIN;
+  - the dock choice: "keep as is" or "swipe only".
+
 ## State 2026-11-21 23:00 AEDT (session "tablet-lab"): Cairn 11.11 session probed, owner on the tablet
 
 - The session was unlocked with `loginctl unlock-session c3` (no PIN
