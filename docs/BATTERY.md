@@ -249,3 +249,71 @@ Ruled out on the way: an "idle M3 stuck at a high frequency" effect (the
 cluster's frequency changes 2-3 times a second while quiet;
 sticky-m3-ab.txt), and an effect of re-applying tuned's profile
 (tuned-reapply.txt).
+
+System services on the little cores (samsung-gtactive3-common r61, not
+booted yet, TESTPLAN D14.11): while the saver is on, the profile's script
+(`/etc/tuned/profiles/powersave/script.sh`) runs `systemctl set-property
+--runtime system.slice AllowedCPUs=0-3`, and clears it when the profile
+stops. That is stock Android's split (background and system-background
+cpusets on the A55s, "Scheduler, cpufreq, boosts" above): updates, indexers
+and other services stop waking the M3s, while the session (user.slice: the
+shell, the apps and their services) keeps every core and the touch boost,
+so heavy foreground work still gets the big cores. AllowedCPUs needs only
+the cpuset controller (CONFIG_CPUSETS=y); a uclamp.max cap on system.slice
+would need the cpu controller enabled for it, which is not guaranteed.
+EAS is active: the CPU OPPs carry `opp-microwatt` (33 entries in
+exynos9810-gtactive3-common.dtsi), so the scheduler has an energy model.
+
+## Fast charging (2026-11-23, kernel r31, samsung-gtactive3-common r61)
+
+Android's "Fast charging" switch. Not on the device yet (TESTPLAN D14.10);
+the default stays Standard until that test.
+
+- Kernel (src/linux 7ebdcc355, max77705_charger): the standard
+  `charge_types` property on **max77705-charger** (`[Standard] Fast`).
+  It sits on the charger, not the battery, so upower's charge-type handling
+  of batteries is not involved.
+  - Standard: input current at most 1.5 A and the charge current capped, as
+    before.
+  - Fast: the input limit rises to what the source allows (the USB-C
+    supply's `current_max`: Type-C 3 A, DCP 1.8 A) and the charge current
+    to the battery's DT maximum (3.1 A). The temperature steps and the hot
+    cut-off still apply, and Fast takes effect only while the battery
+    temperature is known; without it the charger keeps the Standard caps
+    and logs "fast charging waits for the battery temperature".
+  - 5 V only: stock 9 V AFC/PD fast charging needs MAX77705 firmware
+    commands that no driver sends yet (PLAN.md layer 8).
+- Device package: `/usr/libexec/gtactive3wifi/charge-speed get | set
+  fast|standard | apply`. It finds the charger by its control (the first
+  non-battery supply offering Fast), saves the choice in
+  `/var/lib/gtactive3wifi/charge-type`, and udev
+  (`61-gtactive3wifi-battery-care.rules`) re-applies it when the charger
+  appears. polkit action `io.github.exynos-linux.charge-speed` lets the
+  active local user switch it with pkexec, no password.
+
+## Gauge fields and estimates (2026-11-23)
+
+From the drivers (max17042_battery, max77705_charger) and a uevent dump on
+Cairn 2026.11.9 (logs/test-runs/2026-11-21-cairn-2026.11.9/dbg/wdt-batt.txt):
+
+| Field (max170xx_battery) | Trust |
+|---|---|
+| `capacity` (RepSOC), `charge_now` (RepCap, µAh, same full scale) | good |
+| `current_now` (µA, positive while charging), `voltage_now`, `status`, `temp` (0.1 °C) | good |
+| `charge_full` (FullCAP) | ✘ relearning after a gauge reset: 4.82 Ah, above the 4370 mAh design |
+| `cycle_count` | ✘ 0, reset with the gauge |
+| `time_to_empty_now`, `time_to_full_now` | ✘ from the wrong FullCAP and a jumpy average; upower passes them on |
+| `health` | temperature only (Good / Overheat / Cold), not wear |
+| `charge_full_design` | the gauge's 4370 mAh; the label says 5050 mAh |
+
+So the UI computes its own times (the noru session has the full recipe):
+- Smooth `current_now` (EWMA, about 60 s discharging, 30 s charging).
+- Time to empty: `charge_now / |I|`.
+- Time to full: CC part `(Q_target − charge_now) / I`, then a CV taper
+  fitted as an exponential down to the 150 mA top-off current. CV is
+  4.26 V, or 4.05 V outside 15-42 °C.
+- At the battery-care limit, show "Charging paused" rather than a time.
+
+Wear ("battery health %") needs the gauge's learned values (FullCAPRep,
+FullCAPNom, Cycles, RCOMP0, TempCo) saved and restored across gauge resets,
+as the stock driver does. That is a kernel follow-up (PLAN.md layer 8).

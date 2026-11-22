@@ -5,6 +5,38 @@ If you are the agent reading this after compaction: **you are the lead**. You
 coordinate, integrate, flash the tablet and test every change on the device
 yourself, autonomously, overnight. Keep going until the mission is met.
 
+## State 2026-11-23 (session "battery-care"): fast charging and a saver cpuset, built, not on the device
+
+The owner asked, through the orchestrator, for a saver that is "efficient to
+the maximum" but stays snappy, for fast charging, and for accurate battery
+estimates. The T570 is with the owner, so nothing here is device-tested.
+
+- Kernel r31 (src/linux 7ebdcc355, branch gtactive3): `charge_types`
+  `[Standard] Fast` on max77705-charger. Fast lifts the 1.5 A caps to the
+  source's limit and the battery's 3.1 A, under the temperature steps, and
+  only while the battery temperature is known. It is 5 V only.
+- samsung-gtactive3-common r61 adds:
+  - the `charge-speed` helper, its polkit action and a udev re-apply, with
+    Standard as the default;
+  - in the saver, system.slice on the A55s (tuned script). The session keeps
+    every core.
+  Docs: BATTERY.md "Fast charging", "Gauge fields and estimates" and the
+  Power saver addition; STATUS.md Fast charging, Battery and Power saver
+  rows; TESTPLAN D14.10 and D14.11; PLAN.md layer 8.
+- Numbering: the Cairn ports tree (cairn-os/ports/samsung-gtactive3) already
+  built kernel r30 (the S2MPS18 RTC, patch 0156) and common r59/r60 (the
+  boot-default .efi pattern, RTC clock rules). Those are not in this tree, so
+  this tree skipped to r31/r61. Their changes need merging back here, and
+  ours need porting there.
+- Noru got the field-trust table and the estimate recipe (time-to-empty and
+  time-to-full from charge_now/current_now, not the gauge's time_to_*):
+  `~/.config/Claude/side-session-notes/local_f59ec6de-9d10-435f-8b0b-82cca0834fbd/battery-fields-for-noru.md`.
+- Next: PLAN.md's next three steps. For this work: D14.10 (fast charging on a
+  3 A charger) and D14.11 (saver cpuset) when tablet-lab holds the device,
+  then Fast as the default.
+- Waits for the owner: nothing physical until those tests, which need a 3 A
+  USB-C charger plugged in.
+
 ## State 2026-11-22 17:35 AEDT (session "tablet-lab"): lock with images2, owner answers relayed
 
 - images2 holds the Cairn device lock for the T570 2026.11.18 release test.

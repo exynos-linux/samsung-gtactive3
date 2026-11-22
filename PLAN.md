@@ -189,3 +189,16 @@ what is verified today.
       panel/DSIM power-off, MIF devfreq, C2/SICD (roadmap above)
 - [ ] Cairn OS: the same design in cairn/core and Noru's quick settings
       (handed to the images and noru sessions, 2026-11-20)
+- [ ] Fast charging (2026-11-23): `charge_types` Standard/Fast on the
+      charger (kernel r31, src/linux 7ebdcc355) and the `charge-speed`
+      helper, polkit and udev re-apply (common r61); built, not on the
+      device. Next: D14.10 on a 3 A Type-C charger, then make Fast the
+      default (BATTERY.md "Fast charging")
+- [ ] Saver keeps system services on the A55s (system.slice
+      AllowedCPUs=0-3, common r61); built, not booted. Next: D14.11
+- [ ] 9 V AFC / USB PD fast charging: MAX77705 firmware commands, no
+      driver yet
+- [ ] Gauge learned values (FullCAPRep, FullCAPNom, Cycles, RCOMP0, TempCo)
+      saved and restored across gauge resets, so `charge_full`,
+      `cycle_count` and a health percentage become trustworthy (BATTERY.md
+      "Gauge fields and estimates")

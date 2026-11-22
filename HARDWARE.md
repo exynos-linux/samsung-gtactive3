@@ -47,6 +47,13 @@ resting (0x05 → 0x04: battery current +122 mA → ~0, DETAILS_01 0x33 → 0x38
 CNFG_09 (0xC0) bit 7, "CHG_EN" in include/linux/mfd/max77705-private.h, does
 not stop charging. Tested live 2026-11-20 (force-discharge with r27, the CHG
 bit over /dev/i2c-0; logs/test-runs/2026-11-20-battery-care, TESTPLAN D14.9).
+Under mainline the supplies are max77705-charger, max77705-usb (USB-C:
+`usb_type` SDP/CDP/DCP/C/Unknown, `current_max` = what the source allows)
+and max170xx_battery (the gauge). Gauge: DesignCap 4370 mAh (the label says
+5050 mAh; `charge_full_design`). Charger: CV 4.26 V
+(constant-charge-voltage-max-microvolt in the DT; 4.05 V outside 15-42 °C),
+charge current at most 3.1 A (DT), top-off at 150 mA with a 30 min timer
+(drivers/power/supply/max77705_charger.c).
 
 ## Blocked by SELinux (get from stock firmware or root)
 /proc/device-tree, of_node/compatible, dmesg, /proc/cmdline, /vendor/firmware,

@@ -477,7 +477,7 @@ unreachable and GNOME can say "Connection failed". A profile for the
 tablet's host MAC 02:57:0a:00:00:02 with `ipv6.method link-local`,
 `ipv4.may-fail yes` would avoid it; not set up (needs the owner's OK).
 
-### D14. Battery care and power saver (kernel r27, fix in r29; samsung-gtactive3-common r54, BATTERY)
+### D14. Battery care, fast charging and power saver (kernel r27, fix in r29, fast charging r31; samsung-gtactive3-common r54, r61, BATTERY)
 
 docs/BATTERY.md "Battery care" and "Power saver". Measure drain with
 `charge_behaviour` = `force-discharge` (the buck off, so the battery current
@@ -501,6 +501,8 @@ only reads back what the driver wrote. Logs: logs/test-runs/2026-11-20-battery-c
 | D14.7 | in an image with r27 + r54, after the first boot | GNOME Settings/upower: battery care on, 80-85 %; charging pauses at 85 % on a wall charger; switching it off resumes charging; the choice survives a reboot and an A/B update (2026-11-20 on 26112001: ◐ upower 80/85 supported, enable/disable and the re-apply on upower start pass; the "off" saved by D14.5 survived the A/B update (so the first boot showed 100/100: correct, the tmpfiles default only creates a missing file); pause at 85 % still open; a reboot ✔ 2026-11-20 (care back at 80/85, state `1`); ✘ the r27 pause does not stop the current (D14.9): redo the pause with r29) |
 | D14.8 | screen-off drain: `echo +600 > /sys/class/rtc/rtc0/wakealarm; systemctl suspend` with force-discharge, `charge_now` before and after | mA over the time suspended (the owner's OK, 2026-11-20) — ✔ 2026-11-20 17:10-17:31 on 26112001 (r27), 1200 s s2idle, screen off, RTC wake, USB back: charge_now 4401 → 4344 mAh = **~171 mA** (charge_counter: 73 mAh, ~219 mA), including a few seconds awake around entry and exit; awake with the screen on just before: ~650 mA. ✘ at resume the charger's poll ran on the suspended I2C bus ("-108", capacity -1), which ended force-discharge and the care hold (fixed in r29: freezable workqueue). Script and log: d14.8-run.sh, d14.8-170924.log |
 | D14.9 | battery care stops the current: at a hold, CNFG_00 (0x69 reg 0xB7) must lose its CHG bit (0x05 → 0x04) and `current_now` drop to ~0 | ✔ register by hand 2026-11-20 17:56 on 26112001 at 100 % (chg-bit-check.py over /dev/i2c-0): +122 mA → -6..+7 mA, DETAILS_01 0x33 → 0x38 (charger off), back to +125 mA when restored; r29 driver ✔ 2026-11-20 18:29 in image 26112002~test2 at 99 % (r29-battery.sh, logs/test-runs/2026-11-20-r28-live): hold → CNFG_00 0x04, I = 2 mA; force-discharge → 0x00, I = -663..-840 mA; auto → 0x04, -5..+11 mA; still open: resume below 80, s2idle with no -108 |
+| D14.10 | fast charging (kernel r31 + common r61) on a 3 A Type-C charger, then a DCP: `charge-speed get`, `set fast`, `set standard`, a reboot | `charge_types` `[Standard] Fast`; Fast: `input_current_limit` rises to the source's `current_max` (3 A / 1.8 A) and `constant_charge_current` above 1.5 A, battery current rises; the temperature steps still cut it (battery above 42 °C); Standard: back to 1.5 A; the choice survives a reboot (udev apply); with the gauge unloaded Fast keeps the caps and logs "waits for the battery temperature"; battery temperature stays under 42 °C over a 20-80 % charge |
+| D14.11 | saver cpuset (common r61): power-saver on, then balanced | `systemctl show -p AllowedCPUs system.slice` = 0-3 and `/sys/fs/cgroup/system.slice/cpuset.cpus.effective` = 0-3; `user.slice` still 0-7 (a busy loop in the session reaches the M3s); balanced clears it; D14.6 numbers no worse; no stuck service |
 
 ## E. Test helpers
 
